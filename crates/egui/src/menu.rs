@@ -23,7 +23,7 @@ use crate::{
     epaint, vec2,
     widgets::{Button, ImageButton},
     Align2, Area, Color32, Frame, Key, LayerId, Layout, NumExt, Order, Stroke, Style, TextWrapMode,
-    UiKind, WidgetText,
+    UiKind, WidgetText,Widget
 };
 use epaint::mutex::RwLock;
 use std::sync::Arc;
@@ -123,6 +123,27 @@ pub fn menu_custom_button<R>(
     stationary_menu_button_impl(ui, button, Box::new(add_contents))
 }
 
+/// Construct a top level menu with a custom widget in a menu bar.
+///
+/// Responds to primary clicks.
+/// The `widget` parameter must implement the `Widget` trait.
+/// Returns `None` if the menu is not open.
+pub fn menu_custom_widget<R, W>(
+    ui: &mut Ui,
+    widget: W,
+    add_contents: impl FnOnce(&mut Ui) -> R,
+) -> InnerResponse<Option<R>>
+where
+    W: Widget,
+{
+    let bar_id = ui.id();
+    let mut bar_state = BarState::load(ui.ctx(), bar_id);
+    let response = ui.add(widget);
+    let inner = bar_state.bar_menu(&response, add_contents);
+    bar_state.store(ui.ctx(), bar_id);
+    InnerResponse::new(inner.map(|r| r.inner), response)
+}
+
 /// Construct a top level menu with an image in a menu bar. This would be e.g. "File", "Edit" etc.
 ///
 /// Responds to primary clicks.
@@ -153,6 +174,23 @@ pub(crate) fn submenu_button<R>(
     add_contents: impl FnOnce(&mut Ui) -> R,
 ) -> InnerResponse<Option<R>> {
     SubMenu::new(parent_state, title).show(ui, add_contents)
+}
+
+/// Construct a nested sub menu in another menu using a custom widget as the trigger.
+///
+/// Opens on hover.
+///
+/// Returns `None` if the menu is not open.
+pub(crate) fn submenu_widget<R, W>(
+    ui: &mut Ui,
+    parent_state: Arc<RwLock<MenuState>>,
+    widget: W,
+    add_contents: impl FnOnce(&mut Ui) -> R,
+) -> InnerResponse<Option<R>>
+where
+    W: Widget,
+{
+    SubMenuWidget::new(widget, parent_state).show(ui, add_contents)
 }
 
 /// wrapper for the contents of every menu.
@@ -624,6 +662,60 @@ impl SubMenu {
             self.parent_state
                 .write()
                 .show_submenu(ui.ctx(), ui.layer_id(), sub_id, add_contents);
+        InnerResponse::new(inner, response)
+    }
+}
+
+pub struct SubMenuWidget<W: Widget> {
+    widget: W,
+    parent_state: Arc<RwLock<MenuState>>,
+    index: usize,
+}
+
+impl<W: Widget> SubMenuWidget<W> {
+    /// Create a new `SubMenu` with a custom widget.
+    ///
+    /// The provided widget serves as the submenu trigger. It is added to the
+    /// UI when `.show()` is called. The submenu is assigned a unique index based
+    /// on the parent's menu state.
+    pub fn new(widget: W, parent_state: Arc<RwLock<MenuState>>) -> Self {
+        let index = parent_state.write().next_entry_index();
+        Self {
+            widget,
+            parent_state,
+            index,
+        }
+    }
+
+    /// Show the submenu.
+    ///
+    /// This adds the custom widget to the UI and handles its interaction.
+    /// The widget’s response is used to determine if and when the submenu should be
+    /// displayed. If the menu is opened, `add_contents` will be used to build
+    /// the submenu UI.
+    pub fn show<R>(
+        self,
+        ui: &mut Ui,
+        add_contents: impl FnOnce(&mut Ui) -> R,
+    ) -> InnerResponse<Option<R>> {
+        // Generate a unique sub-menu id using the stored index.
+        let sub_id = ui.id().with(self.index);
+
+        // Add the provided widget to the UI.
+        let response = ui.add(self.widget);
+
+        // Handle submenu interaction based on the widget's response.
+        self.parent_state
+            .write()
+            .submenu_button_interaction(ui, sub_id, &response);
+
+        // Show the submenu popup if needed.
+        let inner = self.parent_state.write().show_submenu(
+            ui.ctx(),
+            ui.layer_id(),
+            sub_id,
+            add_contents,
+        );
         InnerResponse::new(inner, response)
     }
 }

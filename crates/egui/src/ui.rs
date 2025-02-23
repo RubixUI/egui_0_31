@@ -3077,6 +3077,32 @@ impl Ui {
             menu::menu_custom_button(self, Button::image_and_text(image, title), add_contents)
         }
     }
+    /// Create a menu button with a custom widget that, when clicked, shows the given menu.
+    ///
+    /// If called from within a menu this will instead create a button for a sub-menu.
+    ///
+    /// Example:
+    /// ```
+    /// # egui::__run_test_ui(|ui| {
+    /// ui.menu_custom_widget(MyCustomWidget::new(), |ui| {
+    ///     ui.label("Submenu content");
+    /// });
+    /// # });
+    /// ```
+    pub fn menu_custom_widget<R, W>(
+        &mut self,
+        widget: W,
+        add_contents: impl FnOnce(&mut Ui) -> R,
+    ) -> InnerResponse<Option<R>>
+    where
+        W: Widget,
+    {
+        if let Some(menu_state) = self.menu_state.clone() {
+            menu::submenu_widget(self, menu_state, widget, add_contents)
+        } else {
+            menu::menu_custom_widget(self, widget, add_contents)
+        }
+    }
 }
 
 // ----------------------------------------------------------------------------

@@ -1071,6 +1071,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "custom_menu"
+version = "0.31.0"
+dependencies = [
+ "eframe",
+ "env_logger",
+]
+
+[[package]]
 name = "custom_style"
 version = "0.1.0"
 dependencies = [
