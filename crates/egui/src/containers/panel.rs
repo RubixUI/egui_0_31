@@ -286,7 +286,7 @@ impl SidePanel {
                 .layout(Layout::top_down(Align::Min)),
         );
         panel_ui.expand_to_include_rect(panel_rect);
-        panel_ui.set_clip_rect(panel_rect); // If we overflow, don't do so visibly (#4475)
+        panel_ui.shrink_clip_rect(panel_rect); // If we overflow, don't do so visibly (#4475)
 
         let frame = frame.unwrap_or_else(|| Frame::side_top_panel(ui.style()));
         let inner_response = frame.show(&mut panel_ui, |ui| {
@@ -783,7 +783,7 @@ impl TopBottomPanel {
                 .layout(Layout::top_down(Align::Min)),
         );
         panel_ui.expand_to_include_rect(panel_rect);
-        panel_ui.set_clip_rect(panel_rect); // If we overflow, don't do so visibly (#4475)
+        panel_ui.shrink_clip_rect(panel_rect); // If we overflow, don't do so visibly (#4475)
 
         let inner_response = frame.show(&mut panel_ui, |ui| {
             ui.set_min_width(ui.max_rect().width()); // Make the frame fill full width
@@ -1118,7 +1118,7 @@ impl CentralPanel {
                 .max_rect(panel_rect)
                 .layout(Layout::top_down(Align::Min)),
         );
-        panel_ui.set_clip_rect(panel_rect); // If we overflow, don't do so visibly (#4475)
+        panel_ui.shrink_clip_rect(panel_rect); // If we overflow, don't do so visibly (#4475)
 
         let frame = frame.unwrap_or_else(|| Frame::central_panel(ui.style()));
         frame.show(&mut panel_ui, |ui| {
