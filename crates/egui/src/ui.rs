@@ -111,6 +111,9 @@ pub struct Ui {
     /// This is an optimization, so we don't call [`Ui::remember_min_rect`] multiple times at the
     /// end of a [`Ui::scope`].
     min_rect_already_remembered: bool,
+
+    /// Optional ID for scrolling. Can be used to identify scroll targets.
+    scroll_id: Option<Id>,
 }
 
 impl Ui {
@@ -171,6 +174,7 @@ impl Ui {
             stack: Arc::new(ui_stack),
             sense,
             min_rect_already_remembered: false,
+            scroll_id: None,
         };
 
         // Register in the widget stack early, to ensure we are behind all widgets we contain:
@@ -315,6 +319,7 @@ impl Ui {
             stack: Arc::new(ui_stack),
             sense,
             min_rect_already_remembered: false,
+            scroll_id: None,
         };
 
         if disabled {
@@ -762,6 +767,16 @@ impl Ui {
     /// or if [`Context::will_discard`] is true.
     pub fn is_rect_visible(&self, rect: Rect) -> bool {
         self.is_visible() && rect.intersects(self.clip_rect())
+    }
+
+    /// Set an optional ID for scrolling. Can be used to identify scroll targets.
+    pub fn set_scroll_id(&mut self, id: Id) {
+        self.scroll_id = Some(id);
+    }
+
+    /// Get the optional scroll ID for this UI.
+    pub fn scroll_id(&self) -> Option<Id> {
+        self.scroll_id
     }
 }
 
