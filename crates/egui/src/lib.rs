@@ -425,7 +425,7 @@ mod memory;
 pub mod menu;
 pub mod os;
 mod painter;
-mod pass_state;
+pub mod pass_state;
 pub(crate) mod placer;
 pub mod response;
 mod sense;
