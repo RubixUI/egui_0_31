@@ -668,7 +668,7 @@ impl ScrollStyle {
         });
 
         if *floating {
-            crate::Grid::new("opacity").show(ui, |ui| {
+            crate::Grid::collapsed("opacity").show(ui, |ui| {
                 fn opacity_ui(ui: &mut Ui, opacity: &mut f32) {
                     ui.add(DragValue::new(opacity).speed(0.01).range(0.0..=1.0));
                 }
@@ -751,7 +751,7 @@ impl ScrollAnimation {
     }
 
     pub fn ui(&mut self, ui: &mut crate::Ui) {
-        crate::Grid::new("scroll_animation").show(ui, |ui| {
+        crate::Grid::collapsed("scroll_animation").show(ui, |ui| {
             ui.label("Scroll animation:");
             ui.add(
                 DragValue::new(&mut self.points_per_second)
@@ -1538,7 +1538,7 @@ impl Style {
             scroll_animation,
         } = self;
 
-        crate::Grid::new("_options").show(ui, |ui| {
+        crate::Grid::collapsed("_options").show(ui, |ui| {
             ui.label("Override font id");
             ui.vertical(|ui| {
                 ui.horizontal(|ui| {
@@ -1659,7 +1659,7 @@ impl Style {
 
 fn text_styles_ui(ui: &mut Ui, text_styles: &mut BTreeMap<TextStyle, FontId>) -> Response {
     ui.vertical(|ui| {
-        crate::Grid::new("text_styles").show(ui, |ui| {
+        crate::Grid::collapsed("text_styles").show(ui, |ui| {
             for (text_style, font_id) in &mut *text_styles {
                 ui.label(RichText::new(text_style.to_string()).font(font_id.clone()));
                 crate::introspection::font_id_ui(ui, font_id);
@@ -1696,10 +1696,10 @@ impl Spacing {
             scroll,
         } = self;
 
-        Grid::new("spacing")
-            .num_columns(2)
+        Grid::fluid("spacing")
+            .fixed(50)
+            .remainder()
             .spacing([12.0, 8.0])
-            .striped(true)
             .show(ui, |ui| {
                 ui.label("Item spacing");
                 ui.add(two_drag_values(item_spacing, 0.0..=20.0));
@@ -1813,9 +1813,9 @@ impl Interaction {
 
         ui.spacing_mut().item_spacing = vec2(12.0, 8.0);
 
-        Grid::new("interaction")
-            .num_columns(2)
-            .striped(true)
+        Grid::fluid("interaction")
+            .fixed(50)
+            .remainder()
             .show(ui, |ui| {
                 ui.label("interact_radius")
                     .on_hover_text("Interact with the closest widget within this radius.");
@@ -1911,7 +1911,10 @@ impl Selection {
         let Self { bg_fill, stroke } = self;
         ui.label("Selectable labels");
 
-        Grid::new("selectiom").num_columns(2).show(ui, |ui| {
+        Grid::fluid("selectiom")
+            .fixed(100)
+            .remainder()
+            .show(ui, |ui| {
             ui.label("Background fill");
             ui.color_edit_button_srgba(bg_fill);
             ui.end_row();
@@ -1934,10 +1937,10 @@ impl WidgetVisuals {
             expansion,
         } = self;
 
-        Grid::new("widget")
-            .num_columns(2)
+        Grid::fluid("widget")
+            .fixed(100)
+            .remainder()
             .spacing([12.0, 8.0])
-            .striped(true)
             .show(ui, |ui| {
                 ui.label("Optional background fill")
                     .on_hover_text("For buttons, combo-boxes, etc");
@@ -2058,10 +2061,10 @@ impl Visuals {
         });
 
         ui.collapsing("Window", |ui| {
-            Grid::new("window")
-                .num_columns(2)
+            Grid::fluid("window")
+                .fixed(100)
+                .remainder()
                 .spacing([12.0, 8.0])
-                .striped(true)
                 .show(ui, |ui| {
                     ui.label("Fill");
                     ui.color_edit_button_srgba(window_fill);
@@ -2084,10 +2087,10 @@ impl Visuals {
         });
 
         ui.collapsing("Menus and popups", |ui| {
-            Grid::new("menus_and_popups")
-                .num_columns(2)
+            Grid::fluid("menus_and_popups")
+                .fixed(100)
+                .remainder()
                 .spacing([12.0, 8.0])
-                .striped(true)
                 .show(ui, |ui| {
                     ui.label("Corner radius");
                     ui.add(menu_corner_radius);
@@ -2167,7 +2170,7 @@ impl TextCursorStyle {
         ui.checkbox(blink, "Blink");
 
         if *blink {
-            Grid::new("cursor_blink").show(ui, |ui| {
+            Grid::collapsed("cursor_blink").show(ui, |ui| {
                 ui.label("On time");
                 ui.add(
                     DragValue::new(on_duration)
@@ -2353,7 +2356,10 @@ impl Widget for &mut Margin {
             ui.vertical(|ui| {
                 ui.checkbox(&mut same, "same");
 
-                crate::Grid::new("margin").num_columns(2).show(ui, |ui| {
+                crate::Grid::fluid("margin")
+                    .fixed(100)
+                    .remainder()
+                    .show(ui, |ui| {
                     ui.label("Left");
                     ui.add(DragValue::new(&mut self.left).range(0.0..=100.0));
                     ui.end_row();
@@ -2410,8 +2416,9 @@ impl Widget for &mut CornerRadius {
             ui.vertical(|ui| {
                 ui.checkbox(&mut same, "same");
 
-                crate::Grid::new("Corner radius")
-                    .num_columns(2)
+                crate::Grid::fluid("Corner radius")
+                    .fixed(100)
+                    .remainder()
                     .show(ui, |ui| {
                         ui.label("NW");
                         ui.add(DragValue::new(&mut self.nw).range(0.0..=f32::INFINITY));
@@ -2461,7 +2468,7 @@ impl Widget for &mut Shadow {
         } = self;
 
         ui.vertical(|ui| {
-            crate::Grid::new("shadow_ui").show(ui, |ui| {
+            crate::Grid::collapsed("shadow_ui").show(ui, |ui| {
                 ui.add(
                     DragValue::new(&mut offset[0])
                         .speed(1.0)
@@ -2526,10 +2533,10 @@ impl Widget for &mut crate::Frame {
             stroke,
         } = self;
 
-        crate::Grid::new("frame")
-            .num_columns(2)
+        crate::Grid::fluid("frame")
+            .fixed(100)
+            .remainder()
             .spacing([12.0, 8.0])
-            .striped(true)
             .show(ui, |ui| {
                 ui.label("Inner margin");
                 ui.add(inner_margin);
@@ -2564,8 +2571,9 @@ impl Widget for &mut FontTweak {
     fn ui(self, ui: &mut Ui) -> Response {
         let original: FontTweak = *self;
 
-        let mut response = Grid::new("font_tweak")
-            .num_columns(2)
+        let mut response = Grid::fluid("font_tweak")
+            .fixed(100)
+            .remainder()
             .show(ui, |ui| {
                 let FontTweak {
                     scale,

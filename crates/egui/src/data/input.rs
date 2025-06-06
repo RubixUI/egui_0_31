@@ -293,7 +293,7 @@ impl ViewportInfo {
             focused,
         } = self;
 
-        crate::Grid::new("viewport_info").show(ui, |ui| {
+        crate::Grid::collapsed("viewport_info").show(ui, |ui| {
             ui.label("Parent:");
             ui.label(opt_as_str(parent));
             ui.end_row();

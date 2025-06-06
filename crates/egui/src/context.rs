@@ -3076,9 +3076,7 @@ impl Context {
                 .auto_shrink([false, true])
                 .show(ui, |ui| {
                     ui.style_mut().override_text_style = Some(TextStyle::Monospace);
-                    Grid::new("textures")
-                        .striped(true)
-                        .num_columns(4)
+                    Grid::fluid("textures")
                         .spacing(vec2(16.0, 2.0))
                         .min_row_height(max_preview_size.y)
                         .show(ui, |ui| {

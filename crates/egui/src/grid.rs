@@ -1,3 +1,5 @@
+use std::ops::{Add, Deref, Mul};
+use std::usize;
 use emath::GuiRounding as _;
 
 use crate::{
@@ -52,10 +54,10 @@ impl State {
     }
 }
 
-// ----------------------------------------------------------------------------
-
-// type alias for boxed function to determine row color during grid generation
-type ColorPickerFn = Box<dyn Send + Sync + Fn(usize, &Style) -> Option<Color32>>;
+enum GridLayoutSize {
+    Collapsing(Vec2,f32),//(min_size,max_width)
+    Fluid(Vec2,Vec<f32>),//min_size,vector of column width
+}
 
 pub(crate) struct GridLayout {
     ctx: Context,
@@ -73,12 +75,9 @@ pub(crate) struct GridLayout {
     curr_state: State,
     initial_available: Rect,
 
-    // Options:
-    num_columns: Option<usize>,
+    // Size:
     spacing: Vec2,
-    min_cell_size: Vec2,
-    max_cell_size: Vec2,
-    color_picker: Option<ColorPickerFn>,
+    size: GridLayoutSize,
 
     // Cursor:
     col: usize,
@@ -86,7 +85,7 @@ pub(crate) struct GridLayout {
 }
 
 impl GridLayout {
-    pub(crate) fn new(ui: &Ui, id: Id, prev_state: Option<State>) -> Self {
+    pub(crate) fn new(ui: &Ui, id: Id, prev_state: Option<State>,grid_size: GridLayoutSize) -> Self {
         let is_first_frame = prev_state.is_none();
         let prev_state = prev_state.unwrap_or_default();
 
@@ -109,11 +108,8 @@ impl GridLayout {
             curr_state: State::default(),
             initial_available,
 
-            num_columns: None,
             spacing: ui.spacing().item_spacing,
-            min_cell_size: ui.spacing().interact_size,
-            max_cell_size: Vec2::INFINITY,
-            color_picker: None,
+            size: grid_size,
 
             col: 0,
             row: 0,
@@ -123,56 +119,84 @@ impl GridLayout {
 
 impl GridLayout {
     fn prev_col_width(&self, col: usize) -> f32 {
+        let col_width= match &self.size {
+            GridLayoutSize::Collapsing(min_size, _) => {
+                min_size.x
+            }
+            GridLayoutSize::Fluid(min_size,v) => {
+                if col >= v.len() {
+                    0.
+                } else {
+                    (v[col] as f32).max(min_size.x)
+                }
+            }
+        };
         self.prev_state
             .col_width(col)
-            .unwrap_or(self.min_cell_size.x)
+            .unwrap_or(col_width)
     }
 
     fn prev_row_height(&self, row: usize) -> f32 {
+        let col_height= match &self.size {
+            GridLayoutSize::Collapsing(min_size, _) => {
+                min_size.y
+            }
+            GridLayoutSize::Fluid(min_size,v) => {
+                min_size.y
+            }
+        };
         self.prev_state
             .row_height(row)
-            .unwrap_or(self.min_cell_size.y)
+            .unwrap_or(col_height)
     }
 
     pub(crate) fn wrap_text(&self) -> bool {
-        self.max_cell_size.x.is_finite()
+        match self.size {
+            GridLayoutSize::Collapsing(_, max_width) => {
+                max_width.is_finite()
+            }
+            GridLayoutSize::Fluid(_, _) => {
+                true
+            }
+        }
     }
 
     pub(crate) fn available_rect(&self, region: &Region) -> Rect {
-        let is_last_column = Some(self.col + 1) == self.num_columns;
 
-        let width = if is_last_column {
-            // The first frame we don't really know the widths of the previous columns,
-            // so returning a big available width here can cause trouble.
-            if self.is_first_frame {
-                self.curr_state
-                    .col_width(self.col)
-                    .unwrap_or(self.min_cell_size.x)
-            } else {
-                (self.initial_available.right() - region.cursor.left())
-                    .at_most(self.max_cell_size.x)
+        let width = match &self.size {
+            GridLayoutSize::Collapsing(min_size, max_width) => {
+                if max_width.is_finite() {
+                    *max_width
+                } else {
+                    self.prev_state
+                        .col_width(self.col)
+                        .or_else(|| self.curr_state.col_width(self.col))
+                        .unwrap_or(min_size.x)
+                }
             }
-        } else if self.max_cell_size.x.is_finite() {
-            // TODO(emilk): should probably heed `prev_state` here too
-            self.max_cell_size.x
-        } else {
-            // If we want to allow width-filling widgets like [`Separator`] in one of the first cells
-            // then we need to make sure they don't spill out of the first cell:
-            self.prev_state
-                .col_width(self.col)
-                .or_else(|| self.curr_state.col_width(self.col))
-                .unwrap_or(self.min_cell_size.x)
+            GridLayoutSize::Fluid(min_size, v) => {
+                if self.col >= v.len() {
+                    0.
+                } else {
+                    v[self.col]
+                }
+            }
         };
-
         // If something above was wider, we can be wider:
         let width = width.max(self.curr_state.col_width(self.col).unwrap_or(0.0));
 
         let available = region.max_rect.intersect(region.cursor);
 
-        let height = region.max_rect.max.y - available.top();
-        let height = height
-            .at_least(self.min_cell_size.y)
-            .at_most(self.max_cell_size.y);
+
+        let mut height = region.max_rect.max.y - available.top();
+        height = match &self.size {
+            GridLayoutSize::Collapsing(min, _) => {
+                height.at_least(min.y)
+            }
+            GridLayoutSize::Fluid(min, _) => {
+                height.at_least(min.y)
+            }
+        };
 
         Rect::from_min_size(available.min, vec2(width, height))
     }
@@ -226,34 +250,36 @@ impl GridLayout {
                 }
             }
         }
-
+        let min_size = self.min_size();
+        match &self.size {
+            GridLayoutSize::Collapsing(_, _) => {
+                self.curr_state
+                    .set_min_col_width(self.col, widget_rect.width().max(min_size.x));
+            }
+            GridLayoutSize::Fluid(min, v) => {
+                if self.col >= v.len() {
+                    self.curr_state
+                        .set_min_col_width(self.col, widget_rect.width().max(min_size.x));
+                } else {
+                    self.curr_state
+                        .set_min_col_width(self.col, widget_rect.width().max(min_size.x).max(v[self.col]));
+                }
+            }
+        }
         self.curr_state
-            .set_min_col_width(self.col, widget_rect.width().max(self.min_cell_size.x));
+            .set_min_col_width(self.col, widget_rect.width().max(min_size.x).max(min_size.y));
         self.curr_state
-            .set_min_row_height(self.row, widget_rect.height().max(self.min_cell_size.y));
+            .set_min_row_height(self.row, widget_rect.height().max(min_size.y));
 
         cursor.min.x += self.prev_col_width(self.col) + self.spacing.x;
         self.col += 1;
     }
 
-    fn paint_row(&self, cursor: &Rect, painter: &Painter) {
-        // handle row color painting based on color-picker function
-        let Some(color_picker) = self.color_picker.as_ref() else {
-            return;
-        };
-        let Some(row_color) = color_picker(self.row, &self.style) else {
-            return;
-        };
-        let Some(height) = self.prev_state.row_height(self.row) else {
-            return;
-        };
-        // Paint background for coming row:
-        let size = Vec2::new(self.prev_state.full_width(self.spacing.x), height);
-        let rect = Rect::from_min_size(cursor.min, size);
-        let rect = rect.expand2(0.5 * self.spacing.y * Vec2::Y);
-        let rect = rect.expand2(2.0 * Vec2::X); // HACK: just looks better with some spacing on the sides
-
-        painter.rect_filled(rect, 2.0, row_color);
+    fn min_size(&self) -> Vec2 {
+        match self.size {
+            GridLayoutSize::Collapsing(min, _) => {min}
+            GridLayoutSize::Fluid(min, _) => {min}
+        }
     }
 
     pub(crate) fn end_row(&mut self, cursor: &mut Rect, painter: &Painter) {
@@ -262,12 +288,10 @@ impl GridLayout {
         cursor.min.y += self
             .curr_state
             .row_height(self.row)
-            .unwrap_or(self.min_cell_size.y);
+            .unwrap_or(self.min_size().y);
 
         self.col = 0;
         self.row += 1;
-
-        self.paint_row(cursor, painter);
     }
 
     pub(crate) fn save(&self) {
@@ -291,8 +315,9 @@ impl GridLayout {
 /// [`Ui::horizontal`], [`Ui::vertical`] etc.
 ///
 /// ```
-/// # egui::__run_test_ui(|ui| {
-/// egui::Grid::new("some_unique_id").show(ui, |ui| {
+/// # use egui::Grid;
+/// egui::__run_test_ui(|ui| {
+/// egui::Grid::fluid("some_unique_id").show(ui, |ui| {
 ///     ui.label("First row, first column");
 ///     ui.label("First row, second column");
 ///     ui.end_row();
@@ -308,86 +333,213 @@ impl GridLayout {
 /// });
 /// # });
 /// ```
-#[must_use = "You should call .show()"]
-pub struct Grid {
-    id_salt: Id,
-    num_columns: Option<usize>,
-    min_col_width: Option<f32>,
-    min_row_height: Option<f32>,
-    max_cell_size: Vec2,
-    spacing: Option<Vec2>,
-    start_row: usize,
-    color_picker: Option<ColorPickerFn>,
+///
+struct BoundedUsize(usize);
+impl BoundedUsize {
+    pub fn new(value: usize) -> Self {
+        if (0..=100).contains(&value) {
+            BoundedUsize(value)
+        } else {
+            BoundedUsize(100)
+        }
+    }
+
+    pub fn get(&self) -> usize {
+        self.0
+    }
 }
 
-impl Grid {
-    /// Create a new [`Grid`] with a locally unique identifier.
-    pub fn new(id_salt: impl std::hash::Hash) -> Self {
-        Self {
-            id_salt: Id::new(id_salt),
-            num_columns: None,
-            min_col_width: None,
-            min_row_height: None,
-            max_cell_size: Vec2::INFINITY,
-            spacing: None,
-            start_row: 0,
-            color_picker: None,
-        }
-    }
+impl Deref for BoundedUsize {
+    type Target = usize;
 
-    /// Setting this will allow for dynamic coloring of rows of the grid object
-    #[inline]
-    pub fn with_row_color<F>(mut self, color_picker: F) -> Self
-    where
-        F: Send + Sync + Fn(usize, &Style) -> Option<Color32> + 'static,
-    {
-        self.color_picker = Some(Box::new(color_picker));
-        self
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
+}
 
-    /// Setting this will allow the last column to expand to take up the rest of the space of the parent [`Ui`].
-    #[inline]
-    pub fn num_columns(mut self, num_columns: usize) -> Self {
-        self.num_columns = Some(num_columns);
-        self
+// 实现与 usize 的加法：返回 usize
+impl Add<usize> for BoundedUsize {
+    type Output = usize;
+
+    fn add(self, rhs: usize) -> Self::Output {
+        self.0 + rhs
     }
+}
 
-    /// If `true`, add a subtle background color to every other row.
-    ///
-    /// This can make a table easier to read.
-    /// Default is whatever is in [`crate::Visuals::striped`].
-    pub fn striped(self, striped: bool) -> Self {
-        if striped {
-            self.with_row_color(striped_row_color)
-        } else {
-            // Explicitly set the row color to nothing.
-            // Needed so that when the style.visuals.striped value is checked later on,
-            // it is clear that the user does not want stripes on this specific Grid.
-            self.with_row_color(|_row: usize, _style: &Style| None)
-        }
+// 实现与 f32 的乘法：返回 f32
+impl Mul<f32> for BoundedUsize {
+    type Output = f32;
+
+    fn mul(self, rhs: f32) -> Self::Output {
+        (self.0 as f32) * rhs
     }
+}
 
+enum GridSizeFluid {
+    Fixed(usize), //fix width
+    Percent(BoundedUsize),//percent of ui available width: usize of [0 ~ 100]
+    Remainder, //Remainder of ui available width
+}
+enum GridSize {
+    Collapsing(Option<usize>,Option<usize>,f32),//(min_size_x,min_size_y,max_width)
+    Fluid(f32,Vec<GridSizeFluid>),//vector of column width
+}
+#[must_use = "You should call .show()"]
+pub struct GridCollapsed {
+    id_salt: Id,
+    min_size_x: Option<usize>,
+    min_size_y: Option<usize>,
+    max_width: Option<usize>,
+    spacing: Option<(usize, usize)>,
+    start_row: usize,
+}
+
+impl GridCollapsed {
     /// Set minimum width of each column.
     /// Default: [`crate::style::Spacing::interact_size`]`.x`.
     #[inline]
-    pub fn min_col_width(mut self, min_col_width: f32) -> Self {
-        self.min_col_width = Some(min_col_width);
+    pub fn min_col_width(mut self, min_col_width: usize) -> Self {
+        self.min_size_x = Some(min_col_width);
         self
     }
 
     /// Set minimum height of each row.
     /// Default: [`crate::style::Spacing::interact_size`]`.y`.
     #[inline]
-    pub fn min_row_height(mut self, min_row_height: f32) -> Self {
-        self.min_row_height = Some(min_row_height);
+    pub fn min_row_height(mut self, min_row_height: usize) -> Self {
+        self.min_size_y = Some(min_row_height);
         self
     }
 
     /// Set soft maximum width (wrapping width) of each column.
     #[inline]
-    pub fn max_col_width(mut self, max_col_width: f32) -> Self {
-        self.max_cell_size.x = max_col_width;
+    pub fn max_col_width(mut self, max_col_width: usize) -> Self {
+        self.max_width = Some(max_col_width);
         self
+    }
+
+    pub fn new(id_salt: impl std::hash::Hash) -> Self {
+        Self {
+            id_salt: Id::new(id_salt),
+            min_size_x: None,
+            min_size_y: None,
+            max_width: None,
+            spacing: None,
+            start_row: 0,
+        }
+    }
+
+    pub fn show<R>(self, ui: &mut Ui, add_contents: impl FnOnce(&mut Ui) -> R) -> InnerResponse<R> {
+        let Self {
+            id_salt, min_size_x, min_size_y, max_width, spacing, start_row
+        } = self;
+        let grid_size = GridSize::Collapsing(min_size_x,min_size_y,max_width.map(|u|u as f32).unwrap_or(f32::INFINITY));
+        let grid = Grid {
+            id_salt,
+            size: grid_size,
+            spacing: match spacing {
+                None => {None}
+                Some(s) => {Some(Vec2::new(s.0 as f32,s.1 as f32))}
+            },
+            start_row,
+        };
+        grid.show(ui, add_contents)
+    }
+}
+#[must_use = "You should call .show()"]
+pub struct GridFluid {
+    id_salt: Id,
+    columns: Vec<GridSizeFluid>,
+    spacing: Option<Vec2>,
+    min_height: Option<f32>,
+    start_row: usize,
+}
+
+impl GridFluid {
+    pub fn new(id_salt: impl std::hash::Hash) -> Self {
+        Self {
+            id_salt: Id::new(id_salt),
+            columns: Vec::new(),
+            spacing: None,
+            start_row: 0,
+            min_height: None,
+        }
+    }
+
+    pub fn fixed(mut self,column_width:usize) -> Self {
+        self.columns.push(GridSizeFluid::Fixed(column_width));
+        self
+    }
+
+    pub fn percent(mut self,column_width:usize) -> Self {
+        self.columns.push(GridSizeFluid::Percent(BoundedUsize::new(column_width)));
+        self
+    }
+
+    pub fn remainder(mut self) -> Self {
+        self.columns.push(GridSizeFluid::Remainder);
+        self
+    }
+
+    /// Set spacing between columns/rows.
+    /// Default: [`crate::style::Spacing::item_spacing`].
+    #[inline]
+    pub fn spacing(mut self, spacing: impl Into<Vec2>) -> Self {
+        self.spacing = Some(spacing.into());
+        self
+    }
+
+    pub fn min_row_height(mut self, height: f32) -> Self {
+        self.min_height = Some(height);
+        self
+    }
+
+    pub fn show<R>(self, ui: &mut Ui, add_contents: impl FnOnce(&mut Ui) -> R) -> InnerResponse<R> {
+        let Self { id_salt, columns, spacing, min_height, start_row,  } = self;
+        let grid_size = GridSize::Fluid(min_height.unwrap_or(ui.spacing().interact_size.y),columns);
+        let grid = Grid {
+            id_salt,
+            size: grid_size,
+            spacing,
+            start_row,
+        };
+        grid.show(ui, add_contents)
+    }
+}
+
+#[must_use = "You should call .show()"]
+pub struct Grid {
+    id_salt: Id,
+    size: GridSize,
+    spacing: Option<Vec2>,
+    start_row: usize,
+}
+
+impl Grid {
+    // TODO Create
+    // new struct GridRow and GridColumn
+    pub fn row<R>(ui: &mut Ui, add_contents: impl FnOnce(&mut Ui) -> R) -> R {
+        let res = add_contents(ui);
+        ui.end_row();
+        res
+    }
+
+    /// Create a new [`Grid`] with a locally unique identifier.
+    pub fn new(id_salt: impl std::hash::Hash,grid_size:GridSize) -> Self {
+        Self {
+            id_salt: Id::new(id_salt),
+            size: grid_size,
+            spacing: None,
+            start_row: 0,
+        }
+    }
+
+    pub fn collapsed(id_salt: impl std::hash::Hash) -> GridCollapsed {
+        GridCollapsed::new(id_salt)
+    }
+
+    pub fn fluid(id_salt: impl std::hash::Hash) -> GridFluid {
+        GridFluid::new(id_salt)
     }
 
     /// Set spacing between columns/rows.
@@ -419,20 +571,23 @@ impl Grid {
     ) -> InnerResponse<R> {
         let Self {
             id_salt,
-            num_columns,
-            min_col_width,
-            min_row_height,
-            max_cell_size,
+            size,
             spacing,
             start_row,
-            mut color_picker,
         } = self;
-        let min_col_width = min_col_width.unwrap_or_else(|| ui.spacing().interact_size.x);
-        let min_row_height = min_row_height.unwrap_or_else(|| ui.spacing().interact_size.y);
+        let min_size = match size {
+            GridSize::Collapsing(min_x, min_y, _) => {
+                vec2(
+                    min_x.map(|x| x as f32).unwrap_or_else(|| ui.spacing().interact_size.x),
+                    min_y.map(|x| x as f32).unwrap_or_else(|| ui.spacing().interact_size.y)
+                )
+            }
+            GridSize::Fluid(miny, _) => {
+                let min = ui.spacing().interact_size;
+                vec2(min.x,miny)
+            }
+        };
         let spacing = spacing.unwrap_or_else(|| ui.spacing().item_spacing);
-        if color_picker.is_none() && ui.visuals().striped {
-            color_picker = Some(Box::new(striped_row_color));
-        }
 
         let id = ui.make_persistent_id(id_salt);
         let prev_state = State::load(ui.ctx(), id);
@@ -458,23 +613,20 @@ impl Grid {
 
         ui.allocate_new_ui(ui_builder, |ui| {
             ui.horizontal(|ui| {
-                let is_color = color_picker.is_some();
+                let layout_size = match size {
+                    GridSize::Collapsing(min_x, min_y, max_width) => {
+                        GridLayoutSize::Collapsing(min_size,max_width)
+                    }
+                    GridSize::Fluid(_,v) => {
+                        GridLayoutSize::Fluid(min_size,get_fluid_column_widths(ui,v))
+                    }
+
+                };
                 let grid = GridLayout {
-                    num_columns,
-                    color_picker,
-                    min_cell_size: vec2(min_col_width, min_row_height),
-                    max_cell_size,
                     spacing,
                     row: start_row,
-                    ..GridLayout::new(ui, id, prev_state)
+                    ..GridLayout::new(ui, id, prev_state,layout_size)
                 };
-
-                // paint first incoming row
-                if is_color {
-                    let cursor = ui.cursor();
-                    let painter = ui.painter();
-                    grid.paint_row(&cursor, painter);
-                }
 
                 ui.set_grid(grid);
                 let r = add_contents(ui);
@@ -491,4 +643,33 @@ fn striped_row_color(row: usize, style: &Style) -> Option<Color32> {
         return Some(style.visuals.faint_bg_color);
     }
     None
+}
+
+fn get_fluid_column_widths(ui: &mut Ui,grid_columns: Vec<GridSizeFluid>) -> Vec<(f32)> {
+    let full_size = ui.available_size().x;
+    let mut remainer_width = full_size;
+    let min_width = ui.spacing().interact_size.x;
+    let mut res = vec![];
+    for column in grid_columns {
+        let mut c_width = match column {
+            GridSizeFluid::Fixed(column_width) => {
+                column_width as f32
+            },
+            GridSizeFluid::Percent(percent) => {
+                (percent * 0.01 * full_size).floor()
+            },
+            GridSizeFluid::Remainder => {
+                remainer_width
+            },
+        };
+        c_width = c_width.at_least(min_width).at_most(remainer_width);
+        remainer_width -= c_width;
+        if remainer_width < min_width {
+            res.push(c_width + remainer_width);
+            break
+        } else {
+            res.push(c_width);
+        }
+    }
+    res
 }

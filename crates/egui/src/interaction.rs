@@ -74,7 +74,7 @@ impl InteractionSnapshot {
             }
         }
 
-        crate::Grid::new("interaction").show(ui, |ui| {
+        crate::Grid::collapsed("interaction").show(ui, |ui| {
             ui.label("clicked");
             id_ui(ui, clicked);
             ui.end_row();
