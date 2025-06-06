@@ -290,6 +290,11 @@ impl Ui {
             }
         }
 
+        //when create child from Grid,we should set Wrap Mode To Wrap
+        if self.is_grid() {
+            layout.main_wrap = true;
+        }
+
         debug_assert!(!max_rect.any_nan());
         let stable_id = self.id.with(id_salt);
         let unique_id = stable_id.with(self.next_auto_id_salt);
