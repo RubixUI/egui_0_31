@@ -278,7 +278,7 @@ impl Ui {
             painter.set_invisible();
         }
         let sizing_pass = self.sizing_pass || sizing_pass;
-        let style = style.unwrap_or_else(|| self.style.clone());
+        let mut style = style.unwrap_or_else(|| self.style.clone());
         let sense = sense.unwrap_or(Sense::hover());
 
         if sizing_pass {
@@ -292,7 +292,7 @@ impl Ui {
 
         //when create child from Grid,we should set Wrap Mode To Wrap
         if self.is_grid() {
-            layout.main_wrap = true;
+            style.wrap_mode = Some(TextWrapMode::Wrap);
         }
 
         debug_assert!(!max_rect.any_nan());
