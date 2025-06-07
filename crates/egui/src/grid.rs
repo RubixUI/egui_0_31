@@ -229,6 +229,11 @@ impl GridLayout {
                 height.at_least(min.y)
             }
         };
+        height = height.max(
+            self.prev_state
+                .row_height(self.row)
+                .unwrap_or(0.)
+        );
 
         Rect::from_min_size(available.min, vec2(width, height))
     }
@@ -299,8 +304,6 @@ impl GridLayout {
             }
         }
         self.curr_state
-            .set_min_col_width(self.col, widget_rect.width().max(min_size.x).max(min_size.y));
-        self.curr_state
             .set_min_row_height(self.row, widget_rect.height().max(min_size.y));
 
         cursor.min.x += self.prev_col_width(self.col) + self.spacing.x;
@@ -321,7 +324,10 @@ impl GridLayout {
             .curr_state
             .row_height(self.row)
             .unwrap_or(self.min_size().y);
-
+        cursor.max.y = cursor.min.y + self
+            .curr_state
+            .row_height(self.row)
+            .unwrap_or(self.min_size().y);
         self.col = 0;
         self.row += 1;
     }
