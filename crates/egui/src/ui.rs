@@ -31,6 +31,7 @@ use crate::{
     Style, TextStyle, TextWrapMode, UiBuilder, UiKind, UiStack, UiStackInfo, Vec2, WidgetRect,
     WidgetText,
 };
+use crate::grid::GridLayout;
 // ----------------------------------------------------------------------------
 
 /// This is what you use to place widgets.
@@ -288,11 +289,6 @@ impl Ui {
             if layout.cross_align == Align::Center {
                 layout.cross_align = Align::Min;
             }
-        }
-
-        //when create child from Grid,we should set Wrap Mode To Wrap
-        if self.is_grid() {
-            style.wrap_mode = Some(TextWrapMode::Wrap);
         }
 
         debug_assert!(!max_rect.any_nan());
@@ -2720,6 +2716,10 @@ impl Ui {
 
     pub(crate) fn is_grid(&self) -> bool {
         self.placer.is_grid()
+    }
+
+    pub fn get_grid(&self) -> Option<&GridLayout> {
+        self.placer.grid()
     }
 
     /// Move to the next row in a grid layout or wrapping layout.

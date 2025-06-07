@@ -59,7 +59,7 @@ enum GridLayoutSize {
     Fluid(Vec2,Vec<f32>),//min_size,vector of column width
 }
 
-pub(crate) struct GridLayout {
+pub struct GridLayout {
     ctx: Context,
     style: std::sync::Arc<Style>,
     id: Id,
@@ -114,6 +114,38 @@ impl GridLayout {
             col: 0,
             row: 0,
         }
+    }
+}
+
+impl GridLayout {
+    pub fn is_first_column(&self) -> bool {
+        self.col == 0
+    }
+    pub fn is_last_column(&self) -> bool {
+        let len = self.prev_state.col_widths.len();
+        if len > 0 {
+            self.col == len - 1
+        } else {
+            false
+        }
+    }
+    pub fn is_first_row(&self) -> bool {
+        self.row == 0
+    }
+    pub fn is_last_row(&self) -> bool {
+        let len = self.prev_state.row_heights.len();
+        if len > 0 {
+            self.row == len - 1
+        } else {
+            false
+        }
+    }
+    pub fn get_row_rect(&self,ui: &Ui) -> Option<Rect> {
+        let Some(height) = self.prev_state.row_height(self.row) else {
+            return None;
+        };
+        let size = Vec2::new(self.prev_state.full_width(self.spacing.x), height);
+        Some(Rect::from_min_size(ui.cursor().min, size))
     }
 }
 
