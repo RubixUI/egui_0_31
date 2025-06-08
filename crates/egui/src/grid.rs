@@ -2,16 +2,13 @@ use std::ops::{Add, Deref, Mul};
 use std::usize;
 use emath::GuiRounding as _;
 
-use crate::{
-    vec2, Align2, Color32, Context, Id, InnerResponse, NumExt, Painter, Rect, Region, Style, Ui,
-    UiBuilder, Vec2,
-};
+use crate::{vec2, Align2, Color32, Context, Id, InnerResponse, NumExt, Painter, Rect, Region, Spacing, Style, Ui, UiBuilder, Vec2};
 
 #[cfg(debug_assertions)]
 use crate::Stroke;
 
 #[derive(Clone, Debug, Default, PartialEq)]
-pub(crate) struct State {
+pub struct State {
     col_widths: Vec<f32>,
     row_heights: Vec<f32>,
 }
@@ -54,7 +51,7 @@ impl State {
     }
 }
 
-enum GridLayoutSize {
+pub enum GridLayoutSize {
     Collapsing(Vec2,f32),//(min_size,max_width)
     Fluid(Vec2,Vec<f32>),//min_size,vector of column width
 }
@@ -85,7 +82,7 @@ pub struct GridLayout {
 }
 
 impl GridLayout {
-    pub(crate) fn new(ui: &Ui, id: Id, prev_state: Option<State>,grid_size: GridLayoutSize) -> Self {
+    pub fn new(ui: &Ui, id: Id, prev_state: Option<State>,grid_size: GridLayoutSize,spacing: Vec2,row:usize) -> Self {
         let is_first_frame = prev_state.is_none();
         let prev_state = prev_state.unwrap_or_default();
 
@@ -108,12 +105,20 @@ impl GridLayout {
             curr_state: State::default(),
             initial_available,
 
-            spacing: ui.spacing().item_spacing,
+            spacing,
             size: grid_size,
 
             col: 0,
-            row: 0,
+            row,
         }
+    }
+
+    pub fn collapsing_size(min_size: Vec2,max_width: f32) -> GridLayoutSize {
+        GridLayoutSize::Collapsing(min_size,max_width)
+    }
+
+    pub fn fluid_size(min_size: Vec2,cells_size: Vec<f32>) -> GridLayoutSize {
+        GridLayoutSize::Fluid(min_size,cells_size)
     }
 }
 
@@ -418,9 +423,9 @@ enum GridSizeFluid {
     Percent(BoundedUsize),//percent of ui available width: usize of [0 ~ 100]
     Remainder, //Remainder of ui available width
 }
-enum GridSize {
+pub enum GridSize {
     Collapsing(Option<usize>,Option<usize>,f32),//(min_size_x,min_size_y,max_width)
-    Fluid(f32,Vec<GridSizeFluid>),//vector of column width
+    Fluid(f32,Vec<GridSizeFluid>),//min_height,vector of column width
 }
 #[must_use = "You should call .show()"]
 pub struct GridCollapsed {
@@ -660,11 +665,7 @@ impl Grid {
                     }
 
                 };
-                let grid = GridLayout {
-                    spacing,
-                    row: start_row,
-                    ..GridLayout::new(ui, id, prev_state,layout_size)
-                };
+                let grid = GridLayout::new(ui, id, prev_state,layout_size,spacing,start_row);
 
                 ui.set_grid(grid);
                 let r = add_contents(ui);

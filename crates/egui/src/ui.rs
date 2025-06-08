@@ -2706,11 +2706,11 @@ impl Ui {
         )
     }
 
-    pub(crate) fn set_grid(&mut self, grid: grid::GridLayout) {
+    pub fn set_grid(&mut self, grid: grid::GridLayout) {
         self.placer.set_grid(grid);
     }
 
-    pub(crate) fn save_grid(&mut self) {
+    pub fn save_grid(&mut self) {
         self.placer.save_grid();
     }
 
