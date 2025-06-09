@@ -456,12 +456,20 @@ impl GridSize {
         }
     }
 
-    pub fn collapse_size(min_w:Option<usize>,min_h:Option<usize>,max_w:Option<usize>) -> Self {
-        Self::Collapsing(min_w,min_h,max_w)
+    pub fn collapse_size_default() -> Self {
+        Self::Collapsing(None,None,None)
+    }
+
+    pub fn fluid_size_default() -> Self {
+        Self::Fluid(None,vec![])
     }
 
     pub fn fluid_size(min_h:usize) -> Self {
         Self::Fluid(Some(min_h),vec![])
+    }
+
+    pub fn collapse_size(min_w:Option<usize>,min_h:Option<usize>,max_w:Option<usize>) -> Self {
+        Self::Collapsing(min_w,min_h,max_w)
     }
 
     pub fn add_fixed(mut self, fixed_size:usize) -> Self {
