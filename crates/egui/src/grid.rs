@@ -152,6 +152,10 @@ impl GridLayout {
         let size = Vec2::new(self.prev_state.full_width(self.spacing.x), height);
         Some(Rect::from_min_size(ui.cursor().min, size))
     }
+
+    pub fn row_number(&self) -> usize {
+        self.row
+    }
 }
 
 impl GridLayout {
