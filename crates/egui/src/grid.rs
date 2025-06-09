@@ -455,6 +455,50 @@ impl GridSize {
 
         }
     }
+
+    pub fn collapse_size(min_w:Option<usize>,min_h:Option<usize>,max_w:f32) -> Self {
+        Self::Collapsing(min_w,min_h,max_w)
+    }
+
+    pub fn fluid_size(min_h:f32) -> Self {
+        Self::Fluid(min_h,vec![])
+    }
+
+    pub fn add_fixed(mut self, fixed_size:usize) -> Self {
+        match self {
+            GridSize::Collapsing(_,_,_) => {
+                self
+            }
+            GridSize::Fluid(min, ref mut v) => {
+                v.push(GridSizeFluid::Fixed(fixed_size));
+                self
+            }
+        }
+    }
+
+    pub fn add_percent(mut self, percent: usize) -> Self {
+        match self {
+            GridSize::Collapsing(_,_,_) => {
+                self
+            }
+            GridSize::Fluid(_, ref mut v) => {
+                v.push(GridSizeFluid::Percent(BoundedUsize::new(percent)));
+                self
+            }
+        }
+    }
+
+    pub fn add_remainder(mut self) -> Self {
+        match self {
+            GridSize::Collapsing(_,_,_) => {
+                self
+            }
+            GridSize::Fluid(_, ref mut v) => {
+                v.push(GridSizeFluid::Remainder);
+                self
+            }
+        }
+    }
 }
 #[must_use = "You should call .show()"]
 pub struct GridCollapsed {
