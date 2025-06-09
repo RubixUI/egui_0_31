@@ -427,6 +427,35 @@ pub enum GridSize {
     Collapsing(Option<usize>,Option<usize>,f32),//(min_size_x,min_size_y,max_width)
     Fluid(f32,Vec<GridSizeFluid>),//min_height,vector of column width
 }
+
+impl GridSize {
+    pub fn get_min_size(&self,ui:& Ui) -> Vec2 {
+        match self {
+            GridSize::Collapsing(min_x, min_y, _) => {
+                vec2(
+                    min_x.map(|x| x as f32).unwrap_or_else(|| ui.spacing().interact_size.x),
+                    min_y.map(|x| x as f32).unwrap_or_else(|| ui.spacing().interact_size.y)
+                )
+            }
+            GridSize::Fluid(miny, _) => {
+                let min = ui.spacing().interact_size;
+                vec2(min.x, *miny)
+            }
+        }
+    }
+    pub fn to_grid_layout_size(self,ui:& Ui) -> GridLayoutSize {
+        let min_size = self.get_min_size(ui);
+        match self {
+            GridSize::Collapsing(min_x, min_y, max_width) => {
+                GridLayoutSize::Collapsing(min_size,max_width)
+            }
+            GridSize::Fluid(_,v) => {
+                GridLayoutSize::Fluid(min_size,get_fluid_column_widths(ui,v))
+            }
+
+        }
+    }
+}
 #[must_use = "You should call .show()"]
 pub struct GridCollapsed {
     id_salt: Id,
@@ -618,18 +647,6 @@ impl Grid {
             spacing,
             start_row,
         } = self;
-        let min_size = match size {
-            GridSize::Collapsing(min_x, min_y, _) => {
-                vec2(
-                    min_x.map(|x| x as f32).unwrap_or_else(|| ui.spacing().interact_size.x),
-                    min_y.map(|x| x as f32).unwrap_or_else(|| ui.spacing().interact_size.y)
-                )
-            }
-            GridSize::Fluid(miny, _) => {
-                let min = ui.spacing().interact_size;
-                vec2(min.x,miny)
-            }
-        };
         let spacing = spacing.unwrap_or_else(|| ui.spacing().item_spacing);
 
         let id = ui.make_persistent_id(id_salt);
@@ -656,16 +673,7 @@ impl Grid {
 
         ui.allocate_new_ui(ui_builder, |ui| {
             ui.horizontal(|ui| {
-                let layout_size = match size {
-                    GridSize::Collapsing(min_x, min_y, max_width) => {
-                        GridLayoutSize::Collapsing(min_size,max_width)
-                    }
-                    GridSize::Fluid(_,v) => {
-                        GridLayoutSize::Fluid(min_size,get_fluid_column_widths(ui,v))
-                    }
-
-                };
-                let grid = GridLayout::new(ui, id, prev_state,layout_size,spacing,start_row);
+                let grid = GridLayout::new(ui, id, prev_state,size.to_grid_layout_size(ui),spacing,start_row);
 
                 ui.set_grid(grid);
                 let r = add_contents(ui);
@@ -684,7 +692,7 @@ fn striped_row_color(row: usize, style: &Style) -> Option<Color32> {
     None
 }
 
-fn get_fluid_column_widths(ui: &mut Ui,grid_columns: Vec<GridSizeFluid>) -> Vec<(f32)> {
+fn get_fluid_column_widths(ui: & Ui,grid_columns: Vec<GridSizeFluid>) -> Vec<(f32)> {
     let full_size = ui.available_size().x;
     let mut remainer_width = full_size;
     let min_width = ui.spacing().interact_size.x;
