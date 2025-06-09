@@ -424,8 +424,8 @@ enum GridSizeFluid {
     Remainder, //Remainder of ui available width
 }
 pub enum GridSize {
-    Collapsing(Option<usize>,Option<usize>,f32),//(min_size_x,min_size_y,max_width)
-    Fluid(f32,Vec<GridSizeFluid>),//min_height,vector of column width
+    Collapsing(Option<usize>,Option<usize>,Option<usize>),//(min_size_x,min_size_y,max_width)
+    Fluid(Option<usize>,Vec<GridSizeFluid>),//min_height,vector of column width
 }
 
 impl GridSize {
@@ -439,7 +439,7 @@ impl GridSize {
             }
             GridSize::Fluid(miny, _) => {
                 let min = ui.spacing().interact_size;
-                vec2(min.x, *miny)
+                vec2(min.x, miny.unwrap_or(min.y as usize) as f32)
             }
         }
     }
@@ -447,7 +447,7 @@ impl GridSize {
         let min_size = self.get_min_size(ui);
         match self {
             GridSize::Collapsing(min_x, min_y, max_width) => {
-                GridLayoutSize::Collapsing(min_size,max_width)
+                GridLayoutSize::Collapsing(min_size, max_width.unwrap_or(f32::INFINITY as usize) as f32)
             }
             GridSize::Fluid(_,v) => {
                 GridLayoutSize::Fluid(min_size,get_fluid_column_widths(ui,v))
@@ -456,12 +456,12 @@ impl GridSize {
         }
     }
 
-    pub fn collapse_size(min_w:Option<usize>,min_h:Option<usize>,max_w:f32) -> Self {
+    pub fn collapse_size(min_w:Option<usize>,min_h:Option<usize>,max_w:Option<usize>) -> Self {
         Self::Collapsing(min_w,min_h,max_w)
     }
 
-    pub fn fluid_size(min_h:f32) -> Self {
-        Self::Fluid(min_h,vec![])
+    pub fn fluid_size(min_h:usize) -> Self {
+        Self::Fluid(Some(min_h),vec![])
     }
 
     pub fn add_fixed(mut self, fixed_size:usize) -> Self {
@@ -549,7 +549,7 @@ impl GridCollapsed {
         let Self {
             id_salt, min_size_x, min_size_y, max_width, spacing, start_row
         } = self;
-        let grid_size = GridSize::Collapsing(min_size_x,min_size_y,max_width.map(|u|u as f32).unwrap_or(f32::INFINITY));
+        let grid_size = GridSize::Collapsing(min_size_x,min_size_y,max_width);
         let grid = Grid {
             id_salt,
             size: grid_size,
@@ -567,7 +567,7 @@ pub struct GridFluid {
     id_salt: Id,
     columns: Vec<GridSizeFluid>,
     spacing: Option<Vec2>,
-    min_height: Option<f32>,
+    min_height: Option<usize>,
     start_row: usize,
 }
 
@@ -606,13 +606,13 @@ impl GridFluid {
     }
 
     pub fn min_row_height(mut self, height: f32) -> Self {
-        self.min_height = Some(height);
+        self.min_height = Some(height as usize);
         self
     }
 
     pub fn show<R>(self, ui: &mut Ui, add_contents: impl FnOnce(&mut Ui) -> R) -> InnerResponse<R> {
         let Self { id_salt, columns, spacing, min_height, start_row,  } = self;
-        let grid_size = GridSize::Fluid(min_height.unwrap_or(ui.spacing().interact_size.y),columns);
+        let grid_size = GridSize::Fluid(min_height,columns);
         let grid = Grid {
             id_salt,
             size: grid_size,
