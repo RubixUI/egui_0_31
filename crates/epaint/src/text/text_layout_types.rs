@@ -653,6 +653,11 @@ impl Glyph {
     pub fn logical_rect(&self) -> Rect {
         Rect::from_min_size(self.pos - vec2(0.0, self.font_ascent), self.size())
     }
+
+    #[inline]
+    pub fn aligned_logical_rect(&self,align_with_row_height: f32) -> Rect {
+        Rect::from_min_size(self.pos - vec2(0.0, self.font_ascent + align_with_row_height), self.size())
+    }
 }
 
 // ----------------------------------------------------------------------------

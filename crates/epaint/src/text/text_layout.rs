@@ -615,7 +615,7 @@ fn galley_from_rows(
                 + glyph.font_impl_ascent
 
                 // Apply valign to the different in height of the entire row, and the height of this `Font`:
-                + format.valign.to_factor() * (max_row_height - glyph.line_height)
+                + format.valign.to_factor() * (max_row_height - glyph.font_height)
 
                 // When mixing different `FontImpl` (e.g. latin and emojis),
                 // we always center the difference:
@@ -726,8 +726,9 @@ fn tessellate_row(
     if format_summary.any_underline {
         add_row_hline(point_scale, row, &mut mesh, |glyph| {
             let format = &job.sections[glyph.section_index as usize].format;
+            let align_with_line_height = ( row.height() - glyph.font_height ) * format.valign.to_factor();
             let stroke = format.underline;
-            let y = glyph.logical_rect().bottom();
+            let y = glyph.aligned_logical_rect(align_with_line_height).center().y + 0.5 * glyph.font_height + 1.0;
             (stroke, y)
         });
     }
@@ -736,7 +737,8 @@ fn tessellate_row(
         add_row_hline(point_scale, row, &mut mesh, |glyph| {
             let format = &job.sections[glyph.section_index as usize].format;
             let stroke = format.strikethrough;
-            let y = glyph.logical_rect().center().y;
+            let align_with_line_height = ( row.height() - glyph.font_height ) * format.valign.to_factor();
+            let y = glyph.aligned_logical_rect(align_with_line_height).center().y;
             (stroke, y)
         });
     }
@@ -771,8 +773,9 @@ fn add_row_backgrounds(job: &LayoutJob, row: &Row, mesh: &mut Mesh) {
 
     for glyph in &row.glyphs {
         let format = &job.sections[glyph.section_index as usize].format;
+        let align_with_line_height = ( row.height() - glyph.font_height ) * format.valign.to_factor();
         let color = format.background;
-        let rect = glyph.logical_rect();
+        let rect = glyph.aligned_logical_rect(align_with_line_height);
 
         if color == Color32::TRANSPARENT {
             end_run(run_start.take(), last_rect.right());
