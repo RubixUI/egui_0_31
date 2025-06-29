@@ -2714,7 +2714,7 @@ impl Ui {
         self.placer.save_grid();
     }
 
-    pub(crate) fn is_grid(&self) -> bool {
+    pub fn is_grid(&self) -> bool {
         self.placer.is_grid()
     }
 
