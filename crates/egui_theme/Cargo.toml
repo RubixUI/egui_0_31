@@ -1,0 +1,15 @@
+[package]
+name = "egui_theme"
+version.workspace = true
+edition.workspace = true
+
+[features]
+default = ["roboto_font"]
+roboto_font = []
+
+[dependencies]
+once_cell = "1.17"
+serde = { workspace = true, features = ["derive"] }
+ahash = { workspace = true }
+emath = { workspace = true, default-features = false }
+epaint = { workspace = true, default-features = false }

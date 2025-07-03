@@ -3,34 +3,16 @@
 
 use emath::GuiRounding as _;
 use epaint::mutex::RwLock;
+use egui_theme::{ Theme };
 use std::{any::Any, hash::Hash, sync::Arc};
 
 use crate::close_tag::ClosableTag;
 #[cfg(debug_assertions)]
 use crate::Stroke;
-use crate::{
-    containers::{CollapsingHeader, CollapsingResponse, Frame},
-    ecolor::Hsva,
-    emath, epaint,
-    epaint::text::Fonts,
-    grid,
-    layout::{Direction, Layout},
-    menu,
-    menu::MenuState,
-    pass_state,
-    placer::Placer,
-    pos2, style,
-    util::IdTypeMap,
-    vec2, widgets,
-    widgets::{
-        color_picker, Button, Checkbox, DragValue, Hyperlink, Image, ImageSource, Label, Link,
-        RadioButton, SelectableLabel, Separator, Spinner, TextEdit, Widget,
-    },
-    Align, Color32, Context, CursorIcon, DragAndDrop, Id, InnerResponse, InputState, LayerId,
-    Memory, Order, Painter, PlatformOutput, Pos2, Rangef, Rect, Response, Rgba, RichText, Sense,
-    Style, TextStyle, TextWrapMode, UiBuilder, UiKind, UiStack, UiStackInfo, Vec2, WidgetRect,
-    WidgetText,
-};
+use crate::{containers::{CollapsingHeader, CollapsingResponse, Frame}, ecolor::Hsva, emath, epaint, epaint::text::Fonts, grid, layout::{Direction, Layout}, menu, menu::MenuState, pass_state, placer::Placer, pos2, style, util::IdTypeMap, vec2, widgets, widgets::{
+    color_picker, Button, Checkbox, DragValue, Hyperlink, Image, ImageSource, Label, Link,
+    RadioButton, SelectableLabel, Separator, Spinner, TextEdit, Widget,
+}, Align, Color32, Context, CursorIcon, DragAndDrop, Id, InnerResponse, InputState, LayerId, Memory, Order, Painter, PlatformOutput, Pos2, Rangef, Rect, Response, Rgba, RichText, Sense, Style, TextStyle, TextWrapMode, UiBuilder, UiKind, UiStack, UiStackInfo, Vec2, WidgetRect, WidgetText};
 use crate::grid::GridLayout;
 // ----------------------------------------------------------------------------
 
@@ -400,6 +382,10 @@ impl Ui {
     #[inline]
     pub fn style(&self) -> &Arc<Style> {
         &self.style
+    }
+    #[inline]
+    pub fn color_theme(&self) -> std::sync::RwLockReadGuard<'_, Theme> {
+        self.ctx().color_theme()
     }
 
     /// Mutably borrow internal [`Style`].

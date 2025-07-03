@@ -1212,7 +1212,6 @@ pub fn default_text_styles() -> BTreeMap<TextStyle, FontId> {
     ]
     .into()
 }
-
 impl Default for Style {
     fn default() -> Self {
         #[allow(deprecated)]
@@ -1244,14 +1243,14 @@ impl Default for Spacing {
         Self {
             item_spacing: vec2(8.0, 3.0),
             window_margin: Margin::same(6),
-            menu_margin: Margin::same(6),
+            menu_margin: Margin::same(0),
             button_padding: vec2(4.0, 1.0),
             indent: 18.0, // match checkbox/radio-button with `button_padding.x + icon_width + icon_spacing`
             interact_size: vec2(40.0, 18.0),
             slider_width: 100.0,
             slider_rail_height: 8.0,
             combo_width: 100.0,
-            text_edit_width: 280.0,
+            text_edit_width: 160.0,
             icon_width: 14.0,
             icon_width_inner: 8.0,
             icon_spacing: 4.0,
@@ -1303,20 +1302,15 @@ impl Visuals {
                 spread: 0,
                 color: Color32::from_black_alpha(96),
             },
-            window_fill: Color32::from_gray(27),
-            window_stroke: Stroke::new(1.0, Color32::from_gray(60)),
+            window_fill: Color32::TRANSPARENT,
+            window_stroke: Stroke::NONE,
             window_highlight_topmost: true,
 
-            menu_corner_radius: CornerRadius::same(6),
+            menu_corner_radius: CornerRadius::same(0),
 
             panel_fill: Color32::from_gray(27),
 
-            popup_shadow: Shadow {
-                offset: [6, 10],
-                blur: 8,
-                spread: 0,
-                color: Color32::from_black_alpha(96),
-            },
+            popup_shadow: Shadow::NONE,
 
             resize_corner_size: 12.0,
 
@@ -1339,7 +1333,6 @@ impl Visuals {
             numeric_color_space: NumericColorSpace::GammaByte,
         }
     }
-
     /// Default light theme.
     pub fn light() -> Self {
         Self {
@@ -1359,17 +1352,12 @@ impl Visuals {
                 spread: 0,
                 color: Color32::from_black_alpha(25),
             },
-            window_fill: Color32::from_gray(248),
-            window_stroke: Stroke::new(1.0, Color32::from_gray(190)),
+            window_fill: Color32::TRANSPARENT,
+            window_stroke: Stroke::NONE,
 
             panel_fill: Color32::from_gray(248),
 
-            popup_shadow: Shadow {
-                offset: [6, 10],
-                blur: 8,
-                spread: 0,
-                color: Color32::from_black_alpha(25),
-            },
+            popup_shadow: Shadow::NONE,
 
             text_cursor: TextCursorStyle {
                 stroke: Stroke::new(2.0, Color32::from_rgb(0, 83, 125)),

@@ -39,6 +39,7 @@ use crate::{
     TextStyle, TextureHandle, TextureOptions, Ui, ViewportBuilder, ViewportCommand, ViewportId,
     ViewportIdMap, ViewportIdPair, ViewportIdSet, ViewportOutput, Widget, WidgetRect, WidgetText,
 };
+use egui_theme::Theme as EguiTheme;
 
 #[cfg(feature = "accesskit")]
 use crate::IdMap;
@@ -748,9 +749,11 @@ impl std::cmp::PartialEq for Context {
 }
 
 impl Default for Context {
+    #[cfg(not(feature = "roboto_font"))]
     fn default() -> Self {
         let ctx_impl = ContextImpl {
             embed_viewports: true,
+            font_definitions: FontDefinitions::default(),
             ..Default::default()
         };
         let ctx = Self(Arc::new(RwLock::new(ctx_impl)));
@@ -760,6 +763,22 @@ impl Default for Context {
         crate::text_selection::LabelSelectionState::register(&ctx);
         crate::DragAndDrop::register(&ctx);
 
+        ctx
+    }
+    #[cfg(feature = "roboto_font")]
+    fn default() -> Self {
+        let font_defs = EguiTheme::roboto_fonts();
+        let ctx_impl = ContextImpl {
+            embed_viewports: true,
+            font_definitions: font_defs,
+            ..Default::default()
+        };
+        let ctx = Self(Arc::new(RwLock::new(ctx_impl)));
+
+        // Register built-in plugins:
+        crate::debug_text::register(&ctx);
+        crate::text_selection::LabelSelectionState::register(&ctx);
+        crate::DragAndDrop::register(&ctx);
         ctx
     }
 }
@@ -1854,6 +1873,10 @@ impl Context {
     /// The currently active [`Style`] used by all subsequent windows, panels etc.
     pub fn style(&self) -> Arc<Style> {
         self.options(|opt| opt.style().clone())
+    }
+    #[inline]
+    pub fn color_theme(&self) -> std::sync::RwLockReadGuard<'_, EguiTheme> {
+        self.options(|opt| opt.theme.read())
     }
 
     /// Mutate the currently active [`Style`] used by all subsequent windows, panels etc.

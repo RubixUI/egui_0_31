@@ -1,0 +1,9 @@
+pub mod tonal_spot;
+pub mod monochrome;
+pub mod neutral;
+pub mod vibrant;
+pub mod expressive;
+pub mod fidelity;
+pub mod content;
+pub mod rainbow;
+pub mod fruit_salad;

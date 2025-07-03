@@ -1,7 +1,7 @@
 #![warn(missing_docs)] // Let's keep this file well-documented.` to memory.rs
 
 use std::num::NonZeroUsize;
-
+use std::sync::Mutex;
 use ahash::{HashMap, HashSet};
 use epaint::emath::TSTransform;
 
@@ -9,6 +9,7 @@ use crate::{
     area, vec2, EventFilter, Id, IdMap, LayerId, Order, Pos2, Rangef, RawInput, Rect, Style, Vec2,
     ViewportId, ViewportIdMap, ViewportIdSet,
 };
+use egui_theme::{ArcTheme, Theme as EguiTheme, ThemeBuilder};
 
 mod theme;
 pub use theme::{Theme, ThemePreference};
@@ -183,7 +184,8 @@ impl FocusDirection {
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(default))]
-pub struct Options {
+pub struct
+Options {
     /// The default style for new [`Ui`](crate::Ui):s in dark mode.
     #[cfg_attr(feature = "serde", serde(skip))]
     pub dark_style: std::sync::Arc<Style>,
@@ -191,6 +193,10 @@ pub struct Options {
     /// The default style for new [`Ui`](crate::Ui):s in light mode.
     #[cfg_attr(feature = "serde", serde(skip))]
     pub light_style: std::sync::Arc<Style>,
+
+    /// The default style for new [`Ui`](crate::Ui):s in dark mode.
+    #[cfg_attr(feature = "serde", serde(skip))]
+    pub theme: ArcTheme,
 
     /// Preference for selection between dark and light [`crate::Context::style`]
     /// as the active style used by all subsequent windows, panels, etc.
@@ -322,6 +328,7 @@ impl Default for Options {
         Self {
             dark_style: std::sync::Arc::new(Theme::Dark.default_style()),
             light_style: std::sync::Arc::new(Theme::Light.default_style()),
+            theme: ArcTheme::default(),
             theme_preference: Default::default(),
             fallback_theme: Theme::Dark,
             system_theme: None,
@@ -370,16 +377,25 @@ impl Options {
             Theme::Light => &mut self.light_style,
         }
     }
+
+    pub fn get_color_theme(&self) -> std::sync::RwLockReadGuard<'_, EguiTheme> {
+        self.theme.read()
+    }
+
+    pub fn set_color_theme(&self,new_theme:EguiTheme) {
+        self.theme.write(new_theme)
+    }
 }
 
 impl Options {
     /// Show the options in the ui.
     pub fn ui(&mut self, ui: &mut crate::Ui) {
-        let theme = self.theme();
+        let _theme = self.theme();
 
         let Self {
             dark_style, // covered above
             light_style,
+            theme, 
             theme_preference,
             fallback_theme: _,
             system_theme: _,
@@ -429,7 +445,7 @@ impl Options {
             .show(ui, |ui| {
                 theme_preference.radio_buttons(ui);
 
-                std::sync::Arc::make_mut(match theme {
+                std::sync::Arc::make_mut(match _theme {
                     Theme::Dark => dark_style,
                     Theme::Light => light_style,
                 })

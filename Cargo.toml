@@ -13,6 +13,7 @@ members = [
     "crates/emath",
     "crates/epaint",
     "crates/epaint_default_fonts",
+    "crates/egui_theme",
 
     "examples/*",
     "tests/*",
@@ -56,6 +57,7 @@ opt-level = 2
 
 [workspace.dependencies]
 emath = { version = "0.31.0", path = "crates/emath", default-features = false }
+egui_theme = { version = "0.31.0", path = "crates/egui_theme", default-features = false }
 ecolor = { version = "0.31.0", path = "crates/ecolor", default-features = false }
 epaint = { version = "0.31.0", path = "crates/epaint", default-features = false }
 epaint_default_fonts = { version = "0.31.0", path = "crates/epaint_default_fonts" }
