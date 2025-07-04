@@ -1,7 +1,5 @@
 use std::collections::BTreeMap;
-use egui::Color32;
-use crate::blend::harmonize;
-use crate::color::Argb;
+use epaint::Color32;
 use crate::color_variant::content::SchemeContent;
 use crate::color_variant::expressive::SchemeExpressive;
 use crate::color_variant::fidelity::SchemeFidelity;
@@ -12,12 +10,10 @@ use crate::color_variant::rainbow::SchemeRainbow;
 use crate::color_variant::tonal_spot::SchemeTonalSpot;
 use crate::color_variant::vibrant::SchemeVibrant;
 use crate::dynamic_schema::DynamicScheme;
-use crate::htc::cam16::Cam16;
 use crate::htc::Hct;
 use crate::theme::ColorVariantMode;
-use crate::tonal_palette::TonalPalette;
 
-#[derive(Clone, Debug, Copy)]
+#[derive(Clone, Debug, Copy, PartialEq)]
 //DynamicColor is dynamic for different mode: light or dark
 pub struct DynamicColor {
     pub bg: Color32,
@@ -25,19 +21,19 @@ pub struct DynamicColor {
     pub bg_container: Color32,
     pub fg_container: Color32,
 }
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct FixedColor {
     bg: Color32,
     fg: Color32,
     bg_dim: Color32,
     fg_variant: Color32,
 }
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct WidgetColor {
     dyn_color: DynamicColor,
     fixed_color: FixedColor,
 }
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct SurfaceColor {
     surface: Color32,
     surface_bright: Color32,

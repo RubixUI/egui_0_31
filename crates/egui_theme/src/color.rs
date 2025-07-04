@@ -8,7 +8,7 @@ use std::{
     string::{String, ToString},
 };
 use core::{fmt, str::FromStr};
-use egui::Color32;
+use epaint::Color32;
 
 pub const SRGB_TO_XYZ: [[f64; 3]; 3] = [
     [0.41233895, 0.35762064, 0.18051042],

@@ -1,3 +1,4 @@
+use core::fmt;
 use std::collections::BTreeMap;
 use std::sync::{Arc, RwLock};
 use epaint::{
@@ -750,7 +751,7 @@ impl BrightnessMode {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CornerRadiusMode {
-    Circular,
+    Full,
     Large,
     Small,
     None
@@ -774,6 +775,23 @@ pub enum ColorVariantMode {
     Rainbow,
     FruitSalad
 }
+
+impl fmt::Display for ColorVariantMode {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ColorVariantMode::TonalSpot => write!(f, "TonalSpot"),
+            ColorVariantMode::Monochrome => write!(f, "Monochrome"),
+            ColorVariantMode::Neutral => write!(f, "Neutral"),
+            ColorVariantMode::Vibrant => write!(f, "Vibrant"),
+            ColorVariantMode::Expressive => write!(f, "Expressive"),
+            ColorVariantMode::Fidelity => write!(f, "Fidelity"),
+            ColorVariantMode::Content => write!(f, "Content"),
+            ColorVariantMode::Rainbow => write!(f, "Rainbow"),
+            ColorVariantMode::FruitSalad => write!(f, "FruitSalad"),
+        }
+    }
+}
+
 #[derive(Debug, Clone,PartialEq)]
 pub struct SizeVariant<T> {
     pub mini: T,
@@ -787,8 +805,8 @@ pub struct SizeVariant<T> {
 
 #[derive(Debug, Clone,PartialEq)]
 pub struct ThemeGap {
-    horizontal: SizeVariant<f32>,
-    vertical: SizeVariant<f32>,
+    pub horizontal: SizeVariant<f32>,
+    pub vertical: SizeVariant<f32>,
 }
 
 #[derive(Debug, Clone,PartialEq)]
@@ -820,6 +838,75 @@ impl Theme {
 
     pub fn typography_body(&self) -> Typography {
         self.typography.get(&TypographyStyles::body()).unwrap().clone()
+    }
+}
+
+//For padding
+impl Theme {
+    //For full size Corner Radius.we should extend padding a little
+    #[inline]
+    fn extend_padding(
+        source: Margin,
+        mode: CornerRadiusMode,
+        amount: Margin
+    ) -> Margin {
+        match mode {
+            CornerRadiusMode::Full => source + amount,
+            CornerRadiusMode::Large
+            | CornerRadiusMode::Small
+            | CornerRadiusMode::None => {
+                source
+            }
+        }
+    }
+    pub fn padding_mini(&self,mode: CornerRadiusMode) -> Margin {
+        Self::extend_padding(
+            self.padding.mini,
+            mode,
+            Margin::symmetric(4,0)
+        )
+    }
+    pub fn padding_extra_small(&self,mode: CornerRadiusMode) -> Margin {
+        Self::extend_padding(
+            self.padding.extra_small,
+            mode,
+            Margin::symmetric(4,0)
+        )
+    }
+    pub fn padding_small(&self,mode: CornerRadiusMode) -> Margin {
+        Self::extend_padding(
+            self.padding.small,
+            mode,
+            Margin::symmetric(4,0)
+        )
+    }
+    pub fn padding_medium(&self,mode: CornerRadiusMode) -> Margin {
+        Self::extend_padding(
+            self.padding.medium,
+            mode,
+            Margin::symmetric(4,4)
+        )
+    }
+    pub fn padding_large(&self,mode: CornerRadiusMode) -> Margin {
+        Self::extend_padding(
+            self.padding.large,
+            mode,
+            Margin::symmetric(4,4)
+        )
+    }
+    pub fn padding_extra_large(&self,mode: CornerRadiusMode) -> Margin {
+        Self::extend_padding(
+            self.padding.extra_large,
+            mode,
+            Margin::symmetric(4,4)
+        )
+    }
+    pub fn padding_huge(&self,mode: CornerRadiusMode) -> Margin {
+        Self::extend_padding(
+            self.padding.huge,
+            mode,
+            Margin::symmetric(4,4)
+        )
     }
 }
 
@@ -946,6 +1033,77 @@ pub struct ThemeBuilder {
 }
 
 impl ThemeBuilder {
+    pub fn get_source_color(&self) -> Color32 {
+        self.source_color
+    }
+
+    pub fn get_brightness_mode(&self) -> BrightnessMode {
+        self.brightness_mode
+    }
+
+    pub fn get_color_variant_mode(&self) -> ColorVariantMode {
+        self.color_variant_mode
+    }
+    pub fn get_color_variant_mode_mut(&mut self) -> &mut ColorVariantMode {
+        &mut self.color_variant_mode
+    }
+    pub fn get_corner_radius_mode(&self) -> CornerRadiusMode {
+        self.corner_radius_mode
+    }
+
+    pub fn get_space_mode(&self) -> SpaceMode {
+        self.space_mode
+    }
+    pub fn get_custom_color(&self) -> &[CustomColorInput] {
+        &self.custom_color
+    }
+
+    pub fn is_dark_mode(&self) -> bool {
+        self.brightness_mode == BrightnessMode::Dark
+    }
+
+    pub fn is_full_size_corner_radius(&self) -> bool {
+        self.corner_radius_mode == CornerRadiusMode::Full
+    }
+
+    pub fn is_large_corner_radius(&self) -> bool {
+        self.corner_radius_mode == CornerRadiusMode::Large
+    }
+
+    pub fn is_small_corner_radius(&self) -> bool {
+        self.corner_radius_mode == CornerRadiusMode::Small
+    }
+
+    pub fn is_none_corner_radius(&self) -> bool {
+        self.corner_radius_mode == CornerRadiusMode::None
+    }
+
+    pub fn is_compact(&self) -> bool {
+        self.space_mode == SpaceMode::Compact
+    }
+
+    pub fn set_color_variant(&mut self,var:ColorVariantMode) {
+        self.color_variant_mode = var
+    }
+
+    pub fn set_corner_radius_mode(&mut self,var:CornerRadiusMode) {
+        self.corner_radius_mode = var
+    }
+
+    pub fn set_space_mode(&mut self,var:SpaceMode) {
+        self.space_mode = var
+    }
+
+    pub fn set_source_color(&mut self,var:Color32) {
+        self.source_color = var
+    }
+
+    pub fn set_brightness(&mut self,var:BrightnessMode) {
+        self.brightness_mode = var
+    }
+}
+
+impl ThemeBuilder {
     pub fn source_color(mut self, color: Color32) -> Self  {
         self.source_color = color;
         self
@@ -966,8 +1124,8 @@ impl ThemeBuilder {
         self.space_mode = SpaceMode::Loose;
         self
     }
-    pub fn circular(mut self) -> Self {
-        self.corner_radius_mode = CornerRadiusMode::Circular;
+    pub fn full(mut self) -> Self {
+        self.corner_radius_mode = CornerRadiusMode::Full;
         self
     }
     pub fn large_rounding(mut self) -> Self {
@@ -1105,7 +1263,7 @@ fn build_padding(
 
 fn build_corner_radius(mode: CornerRadiusMode) -> SizeVariant<CornerRadius> {
     match mode {
-        CornerRadiusMode::Circular => {
+        CornerRadiusMode::Full => {
             SizeVariant {
                 mini: CornerRadius::same(2),
                 extra_small: CornerRadius::same(4),
@@ -1269,7 +1427,7 @@ impl Default for ThemeBuilder {
             source_color: Color32::from_rgb(0, 140, 255), //default use blue source color
             brightness_mode: BrightnessMode::Dark,
             color_variant_mode: ColorVariantMode::TonalSpot,
-            corner_radius_mode: CornerRadiusMode::Circular,
+            corner_radius_mode: CornerRadiusMode::Full,
             space_mode: SpaceMode::Loose,
             custom_color: vec![],
         }
@@ -1295,7 +1453,7 @@ impl ArcTheme {
         self.0.read().unwrap()
     }
 
-    pub fn write(&self, new_theme: Theme) {
+    pub fn write(&mut self, new_theme: Theme) {
         let mut w = self.0.write().unwrap();
         *w = new_theme;
     }

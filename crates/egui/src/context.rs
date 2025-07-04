@@ -1,7 +1,7 @@
 #![warn(missing_docs)] // Let's keep `Context` well-documented.
 
 use std::{borrow::Cow, cell::RefCell, panic::Location, sync::Arc, time::Duration};
-
+use std::ops::Deref;
 use containers::area::AreaState;
 use emath::GuiRounding as _;
 use epaint::{
@@ -1875,8 +1875,15 @@ impl Context {
         self.options(|opt| opt.style().clone())
     }
     #[inline]
-    pub fn color_theme(&self) -> std::sync::RwLockReadGuard<'_, EguiTheme> {
-        self.options(|opt| opt.theme.read())
+    pub fn color_theme<R>(&self,reader: impl FnOnce(&EguiTheme) -> R) -> R {
+        self.options(|opt| {
+            let theme_guard = opt.theme.read();
+            reader(&*theme_guard)
+        })
+    }
+
+    pub fn set_color_theme(&self, theme: EguiTheme) {
+        self.options_mut(|opt| opt.theme.write(theme));
     }
 
     /// Mutate the currently active [`Style`] used by all subsequent windows, panels etc.

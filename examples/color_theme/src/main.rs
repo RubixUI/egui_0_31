@@ -1,12 +1,8 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 #![allow(rustdoc::missing_crate_level_docs)]
 
-// This example shows a top-level menu with a nested submenu,
-// both created via ui.menu_custom_widget.
 
-use eframe::egui::{self, vec2, CentralPanel, GridLayout, GridState, Id, InnerResponse, Ui, UiBuilder, Vec2};
-use eframe::egui::{Grid};
-use eframe::epaint::Stroke;
+use eframe::egui::{self, BrightnessMode, CentralPanel, Color32, ColorVariantMode, CornerRadiusMode, Frame, Margin, SpaceMode, ThemeBuilder, Ui, WidgetText};
 
 fn main() -> eframe::Result<()> {
     eframe::run_native(
@@ -16,194 +12,249 @@ fn main() -> eframe::Result<()> {
     )
 }
 
-#[derive(Default)]
-struct MyApp {}
-
-struct TestTableBuilder {
-    id_salt: Id,
-    cells: usize,
-    striped: bool,
+struct MyApp {
+    theme_builder: ThemeBuilder,
+    source_color: String
 }
 
-struct TestTable {
-    striped: bool,
-}
-
-impl TestTable {
-    pub fn new(striped: bool) -> Self {
-        TestTable { striped }
-    }
-
-    pub fn row<R>(&self,ui: &mut Ui, add_contents: impl FnOnce(&mut Ui) -> R) -> R {
-        let res = add_contents(ui);
-        ui.end_row();
-        res
-    }
-
-    pub fn col() {}
-}
-
-impl TestTableBuilder {
-    pub fn new(id: impl std::hash::Hash) -> Self {
+impl Default for MyApp {
+    fn default() -> Self {
+        let builder = ThemeBuilder::default();
         Self {
-            id_salt: Id::new(id),
-            cells: 2,
-            striped: false,
+            theme_builder: Default::default(),
+            source_color: builder.get_source_color().to_hex(),
         }
-    }
-    pub fn striped(mut self) -> Self {
-        self.striped = true;
-        self
-    }
-    pub fn cells(mut self,cells: usize) -> Self {
-        self.cells = cells;
-        self
-    }
-
-    pub fn show<R>(self, ui: &mut Ui, add_contents: impl FnOnce(&mut Ui,TestTable) -> R) -> InnerResponse<R> {
-        let Self {
-            id_salt, cells, striped
-        } = self;
-        let min_size = ui.spacing().interact_size;
-        let spacing = Vec2::ZERO;
-
-        let id = ui.make_persistent_id(id_salt);
-        let prev_state = GridState::load(ui.ctx(), id);
-
-        // Each grid cell is aligned LEFT_CENTER.
-        // If somebody wants to wrap more things inside a cell,
-        // then we should pick a default layout that matches that alignment,
-        // which we do here:
-        let max_rect = ui.cursor().intersect(ui.max_rect());
-
-        let mut ui_builder = UiBuilder::new().max_rect(max_rect);
-        if prev_state.is_none() {
-            // The initial frame will be glitchy, because we don't know the sizes of things to come.
-
-            if ui.is_visible() {
-                // Try to cover up the glitchy initial frame:
-                ui.ctx().request_discard("new Grid");
-            }
-
-            // Hide the ui this frame, and make things as narrow as possible:
-            ui_builder = ui_builder.sizing_pass().invisible();
-        }
-
-        ui.allocate_new_ui(ui_builder, |ui| {
-            ui.horizontal(|ui| {
-                let min_size = ui.spacing().interact_size;
-                let max_width = ui.available_width();
-                let col_width = max_width / cells as f32;
-                let vector: Vec<f32> = vec![col_width; cells];
-                let layout_size = GridLayout::fluid_size(min_size,vector);
-                let grid = GridLayout::new(ui, id, prev_state,layout_size,spacing,0);
-
-                ui.set_grid(grid);
-                let r = add_contents(ui,TestTable::new(striped));
-                ui.save_grid();
-                r
-            })
-                .inner
-        })
     }
 }
-
 impl eframe::App for MyApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         CentralPanel::default().show(ctx, |ui| {
-            // Create a top-level custom widget menu button:
-            let words = [
-                "random", "words", "in", "a", "random", "order", "that", "just", "keeps", "going",
-                "with", "some", "more",
-            ];
-            TestTableBuilder::new("my_grid")
-                .cells(3)
-                .striped()
-                .show(ui, |ui,table| {
-                    for row in 0..3 {
-                        table.row(ui,|ui| {
-                            for col in 0..3 {
-                                if col == 0 {
-                                    ui.label(format!("row {row}"));
-                                } else {
-                                    let word_idx = row * 3 + col * 5;
-                                    let word_count = (row * 5 + col * 75) % 13;
-                                    let mut string = String::new();
-                                    for word in words.iter().cycle().skip(word_idx).take(word_count) {
-                                        string += word;
-                                        string += " ";
-                                    }
-                                    ui.label(string);
-                                }
-                            }
-                        });
-                    }
-                });
-
-            egui::Grid::fluid("my_grid_fluid")
-                .percent(50)
-                .fixed(300)
-                .remainder()
-                .show(ui, |ui| {
-                    for row in 0..3 {
-                        egui::Grid::row(ui,|ui|{
-                            for col in 0..3 {
-                                if col == 0 {
-                                    ui.label(format!("row {row}"));
-                                } else {
-                                    let word_idx = row * 3 + col * 5;
-                                    let word_count = (row * 5 + col * 75) % 13;
-                                    let mut string = String::new();
-                                    for word in words.iter().cycle().skip(word_idx).take(word_count) {
-                                        string += word;
-                                        string += " ";
-                                    }
-                                    ui.label(string);
-                                }
-                            }
-                        });
-                    }
-                });
-
-            egui::Grid::fluid("my_grid_index")
-                .percent(30)
-                .percent(30)
-                .remainder()
-                .show(ui, |ui| {
-                    for row in 0..3 {
-                        egui::Grid::row(ui,|ui|{
-                            let grid_row = ui.get_grid();
-                            if let Some(grid) = grid_row {
-                                if grid.is_first_row() {
-                                    let row_rect = grid.get_row_rect(ui);
-                                    if let Some(rect) = row_rect {
-                                        ui.painter().line(vec![rect.left_bottom(),rect.right_bottom()],Stroke::new(1.0,egui::Color32::WHITE));
-                                    }
-                                }
-                            }
-                            for col in 0..3 {
-                                let grid = ui.get_grid();
-                                if let Some(grid) = grid {
-                                    let mut string = String::new();
-                                    string += if grid.is_first_column() {
-                                        "\nfirst col"
-                                    } else { "" };
-                                    string += if grid.is_first_row() {
-                                        "\nfirst row"
-                                    } else { "" };
-                                    string += if grid.is_last_column() {
-                                        "\nlast col"
-                                    } else { "" };
-                                    string += if grid.is_last_row() {
-                                        "\nlast row"
-                                    } else { "" };
-                                    ui.label(string);
-                                }
-                            }
-                        });
-                    }
-                });
+            self.show_builder(ui);
+            self.show_colors(ui);
+            self.show_theme(ui);
         });
     }
+}
+
+impl MyApp {
+    fn show_builder(&mut self,ui: &mut egui::Ui) {
+        let mut builder = &mut self.theme_builder;
+        ui.horizontal(|ui|{
+            ui.label("Source Color:");
+            egui::TextEdit::singleline(&mut self.source_color);
+        });
+        ui.horizontal(|ui|{
+            ui.label("Color Variant:");
+            egui::ComboBox::from_label("Color Variant")
+                .selected_text(builder.get_color_variant_mode().to_string())
+                .show_ui(ui, |ui| {
+                    if ui.selectable_value(builder.get_color_variant_mode_mut(), ColorVariantMode::TonalSpot, "TonalSpot").clicked() {
+                        builder.set_color_variant(ColorVariantMode::TonalSpot);
+                    };
+                    if ui.selectable_value(builder.get_color_variant_mode_mut(), ColorVariantMode::Rainbow, "Rainbow").clicked() {
+                        builder.set_color_variant(ColorVariantMode::Rainbow);
+                    };
+                    if ui.selectable_value(builder.get_color_variant_mode_mut(), ColorVariantMode::Fidelity, "Fidelity").clicked() {
+                        builder.set_color_variant(ColorVariantMode::Fidelity);
+                    };
+                    if ui.selectable_value(builder.get_color_variant_mode_mut(), ColorVariantMode::FruitSalad, "FruitSalad").clicked() {
+                        builder.set_color_variant(ColorVariantMode::FruitSalad);
+                    };
+                    if ui.selectable_value(builder.get_color_variant_mode_mut(), ColorVariantMode::Monochrome, "Monochrome").clicked() {
+                        builder.set_color_variant(ColorVariantMode::Monochrome);
+                    };
+                    if ui.selectable_value(builder.get_color_variant_mode_mut(), ColorVariantMode::Content, "Content").clicked() {
+                        builder.set_color_variant(ColorVariantMode::Content);
+                    };
+                    if ui.selectable_value(builder.get_color_variant_mode_mut(), ColorVariantMode::Expressive, "Expressive").clicked() {
+                        builder.set_color_variant(ColorVariantMode::Expressive);
+                    };
+                    if ui.selectable_value(builder.get_color_variant_mode_mut(), ColorVariantMode::Vibrant, "Vibrant").clicked() {
+                        builder.set_color_variant(ColorVariantMode::Vibrant);
+                    };
+                    if ui.selectable_value(builder.get_color_variant_mode_mut(), ColorVariantMode::Neutral, "Neutral").clicked() {
+                        builder.set_color_variant(ColorVariantMode::Neutral);
+                    };
+                });
+        });
+        ui.horizontal(|ui| {
+            ui.label("Brightness:");
+            if ui.radio(builder.is_dark_mode(),"Dark").clicked() {
+                builder.set_brightness(BrightnessMode::Dark);
+            };
+            if ui.radio(!builder.is_dark_mode(),"Light").clicked() {
+                builder.set_brightness(BrightnessMode::Light);
+            };
+        });
+        ui.horizontal(|ui| {
+            ui.label("Corner Radius:");
+            if ui.radio(builder.is_full_size_corner_radius(),"Full").clicked(){
+                builder.set_corner_radius_mode(CornerRadiusMode::Full);
+            };
+            if ui.radio(builder.is_large_corner_radius(),"Large").clicked(){
+                builder.set_corner_radius_mode(CornerRadiusMode::Large);
+            };
+            if ui.radio(builder.is_small_corner_radius(),"Small").clicked(){
+                builder.set_corner_radius_mode(CornerRadiusMode::Small);
+            };
+            if ui.radio(builder.is_none_corner_radius(),"None").clicked(){
+                builder.set_corner_radius_mode(CornerRadiusMode::None);
+            };
+        });
+        ui.horizontal(|ui| {
+            ui.label("Space:");
+            if ui.radio(!builder.is_compact(),"Loose").clicked() {
+                builder.set_space_mode(SpaceMode::Loose)
+            }
+            if ui.radio(builder.is_compact(),"Compact").clicked() {
+                builder.set_space_mode(SpaceMode::Compact)
+            }
+        });
+        if ui.button("Update Theme").clicked() {
+            ui.ctx().set_color_theme(builder.clone().build_theme());
+        }
+    }
+
+    fn show_colors(&mut self,ui: &mut egui::Ui) {
+        let theme = ui.ctx().color_theme(|theme|theme.clone());
+        ui.horizontal(|ui| {
+            show_color(ui,"Primary",theme.color_theme.primary());
+            show_color(ui,"On Primary",theme.color_theme.on_primary());
+            show_color(ui,"Primary",theme.color_theme.primary_container());
+            show_color(ui,"Primary",theme.color_theme.on_primary_container());
+        });
+        ui.horizontal(|ui| {
+            show_color(ui,"Primary Fixed",theme.color_theme.primary_fixed());
+            show_color(ui,"Primary Fixed Dim",theme.color_theme.primary_fixed_dim());
+            show_color(ui,"On Primary Fixed",theme.color_theme.on_primary_fixed());
+            show_color(ui,"On Primary Fixed Variant",theme.color_theme.on_primary_container());
+        });
+        ui.horizontal(|ui| {
+            show_color(ui,"Secondary",theme.color_theme.secondary());
+            show_color(ui,"On Secondary",theme.color_theme.on_secondary());
+            show_color(ui,"Secondary Container",theme.color_theme.secondary_container());
+            show_color(ui,"on Secondary Container",theme.color_theme.on_secondary_container());
+        });
+        ui.horizontal(|ui| {
+            show_color(ui,"Secondary Fixed",theme.color_theme.secondary_fixed());
+            show_color(ui,"Secondary Fixed Dim",theme.color_theme.secondary_fixed_dim());
+            show_color(ui,"On Secondary Fixed",theme.color_theme.on_secondary_fixed_());
+            show_color(ui,"On Secondary Fixed Variant",theme.color_theme.on_secondary_fixed_variant());
+        });
+        ui.horizontal(|ui| {
+            show_color(ui,"Tertiary",theme.color_theme.tertiary());
+            show_color(ui,"On Tertiary",theme.color_theme.on_tertiary());
+            show_color(ui,"Tertiary Container",theme.color_theme.tertiary_container());
+            show_color(ui,"on Tertiary Container",theme.color_theme.on_tertiary_container());
+        });
+        ui.horizontal(|ui| {
+            show_color(ui,"Tertiary Fixed",theme.color_theme.tertiary_fixed());
+            show_color(ui,"Tertiary Fixed Dim",theme.color_theme.tertiary_fixed_dim());
+            show_color(ui,"On Tertiary Fixed",theme.color_theme.on_tertiary_fixed());
+            show_color(ui,"On Tertiary Fixed Variant",theme.color_theme.on_tertiary_fixed_variant());
+        });
+        ui.horizontal(|ui| {
+            show_color(ui,"Error",theme.color_theme.error());
+            show_color(ui,"On Error",theme.color_theme.on_error());
+            show_color(ui,"Error Container",theme.color_theme.error_container());
+            show_color(ui,"on Error Container",theme.color_theme.on_error_container());
+        });
+        ui.horizontal(|ui| {
+            show_color(ui,"Success",theme.color_theme.success());
+            show_color(ui,"On Success",theme.color_theme.on_success());
+            show_color(ui,"Success Container",theme.color_theme.success_container());
+            show_color(ui,"on Success Container",theme.color_theme.on_success_container());
+        });
+        ui.horizontal(|ui| {
+            show_color(ui,"Warning",theme.color_theme.warning());
+            show_color(ui,"On Warning",theme.color_theme.on_warning());
+            show_color(ui,"Warning Container",theme.color_theme.warning_container());
+            show_color(ui,"on Warning Container",theme.color_theme.on_warning_container());
+        });
+        ui.horizontal(|ui| {
+            show_color(ui,"Surface Dim",theme.color_theme.surface_dim());
+            show_color(ui,"Surface",theme.color_theme.surface());
+            show_color(ui,"Surface Bright",theme.color_theme.surface_bright());
+        });
+        ui.horizontal(|ui| {
+            show_color(ui,"Surface Container Lowest",theme.color_theme.surface_container_lowest());
+            show_color(ui,"Surface Container Low",theme.color_theme.surface_container_low());
+            show_color(ui,"Surface Container",theme.color_theme.surface_container());
+            show_color(ui,"Surface Container high",theme.color_theme.surface_container_high());
+            show_color(ui,"Surface Container highest",theme.color_theme.surface_container_highest());
+        });
+        ui.horizontal(|ui| {
+            show_color(ui,"Surface Tint",theme.color_theme.surface_tint());
+            show_color(ui,"Surface Variant",theme.color_theme.surface_variant());
+            show_color(ui,"On Surface",theme.color_theme.on_surface());
+            show_color(ui,"On Surface Variant",theme.color_theme.on_surface_variant());
+        });
+        ui.horizontal(|ui| {
+            show_color(ui,"Inverse Primary",theme.color_theme.inverse_primary());
+            show_color(ui,"Inverse Surface",theme.color_theme.inverse_surface());
+            show_color(ui,"Inverse On Surface",theme.color_theme.inverse_on_surface());
+        });
+        ui.horizontal(|ui| {
+            show_color(ui,"Background",theme.color_theme.background());
+            show_color(ui,"On Background",theme.color_theme.on_background());
+        });
+        ui.horizontal(|ui| {
+            show_color(ui,"Outline",theme.color_theme.outline());
+            show_color(ui,"Outline Variant",theme.color_theme.outline_variant());
+        });
+        ui.horizontal(|ui| {
+            show_color(ui,"Scrim",theme.color_theme.scrim());
+            show_color(ui,"Shadow",theme.color_theme.shadow());
+        });
+    }
+
+    fn show_theme(&mut self,ui: &mut egui::Ui) {
+        let theme = ui.ctx().color_theme(|theme|theme.clone());
+        let corner_radius = theme.corner_radius;
+        ui.label("Corner Radius:");
+        ui.label(format!("Huge: {}", corner_radius.huge.ne));
+        ui.label(format!("Extra Large: {}", corner_radius.extra_large.ne));
+        ui.label(format!("Large: {}", corner_radius.large.ne));
+        ui.label(format!("Medium: {}", corner_radius.medium.ne));
+        ui.label(format!("Small: {}", corner_radius.small.ne));
+        ui.label(format!("Extra Small: {}", corner_radius.extra_small.ne));
+        ui.label(format!("Mini: {}", corner_radius.mini.ne));
+        ui.add_space(40.);
+        let padding = theme.padding;
+        ui.label("Padding:");
+        ui.label(format!("Huge: {} {}", padding.huge.left,padding.huge.top));
+        ui.label(format!("Extra Large: {} {}", padding.extra_large.left,padding.extra_large.top));
+        ui.label(format!("Large: {} {}", padding.large.left,padding.large.top));
+        ui.label(format!("Medium: {} {}", padding.medium.left,padding.medium.top));
+        ui.label(format!("Small: {} {}", padding.small.left,padding.small.top));
+        ui.label(format!("Extra Small: {} {}", padding.extra_small.left,padding.extra_small.top));
+        ui.label(format!("Mini: {} {}", padding.mini.left,padding.mini.top));
+        ui.add_space(40.);
+        let gap_h = theme.gap.horizontal;
+        ui.label("Gap Horizontal:");
+        ui.label(format!("Huge: {}", gap_h.huge));
+        ui.label(format!("Extra Large: {}", gap_h.extra_large));
+        ui.label(format!("Large: {}", gap_h.large));
+        ui.label(format!("Medium: {}", gap_h.medium));
+        ui.label(format!("Small: {}", gap_h.small));
+        ui.label(format!("Extra Small: {}", gap_h.extra_small));
+        ui.label(format!("Mini: {}", gap_h.mini));
+        ui.add_space(40.);
+        let gap_v = theme.gap.vertical;
+        ui.label("Gap Vertical:");
+        ui.label(format!("Huge: {}", gap_v.huge));
+        ui.label(format!("Extra Large: {}", gap_v.extra_large));
+        ui.label(format!("Large: {}", gap_v.large));
+        ui.label(format!("Medium: {}", gap_v.medium));
+        ui.label(format!("Small: {}", gap_v.small));
+        ui.label(format!("Extra Small: {}", gap_v.extra_small));
+        ui.label(format!("Mini: {}", gap_v.mini));
+    }
+}
+
+fn show_color(ui: &mut Ui, text: impl Into<WidgetText>,color:Color32) {
+    Frame::default().fill(color).inner_margin(Margin::same(10)).corner_radius(10).show(ui, |ui| {
+        ui.label(text);
+    });
 }
 

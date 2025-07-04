@@ -1,3 +1,5 @@
+extern crate core;
+
 mod typography_theme_builder;
 mod theme;
 mod color_theme;

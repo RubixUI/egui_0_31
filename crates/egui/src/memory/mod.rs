@@ -382,7 +382,7 @@ impl Options {
         self.theme.read()
     }
 
-    pub fn set_color_theme(&self,new_theme:EguiTheme) {
+    pub fn set_color_theme(&mut self,new_theme:EguiTheme) {
         self.theme.write(new_theme)
     }
 }
