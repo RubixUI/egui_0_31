@@ -827,7 +827,7 @@ pub struct Theme {
     pub corner_radius: SizeVariant<CornerRadius>,
     pub stork_width_variable: StorkWidthTheme,
     pub image_size_variable: ImageSizeTheme,
-    pub color_theme: ColorTheme,
+    pub color: ColorTheme,
     pub typography: BTreeMap<TypographyStyles, Typography>,
 }
 
@@ -1198,7 +1198,7 @@ impl ThemeBuilder {
             corner_radius: build_corner_radius(corner_radius_mode),
             stork_width_variable: Default::default(),
             image_size_variable: Default::default(),
-            color_theme: ColorTheme::new(
+            color: ColorTheme::new(
                 source_color,
                 color_variant_mode,
                 brightness_mode.is_dark(),

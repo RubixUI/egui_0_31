@@ -116,100 +116,100 @@ impl MyApp {
     }
 
     fn show_colors(&mut self,ui: &mut egui::Ui) {
-        let theme = ui.ctx().color_theme(|theme|theme.clone());
+        let theme = ui.ctx().style_theme(|theme|theme.clone());
         ui.horizontal(|ui| {
-            show_color(ui,"Primary",theme.color_theme.primary());
-            show_color(ui,"On Primary",theme.color_theme.on_primary());
-            show_color(ui,"Primary",theme.color_theme.primary_container());
-            show_color(ui,"Primary",theme.color_theme.on_primary_container());
+            show_color(ui,"Primary",theme.color.primary());
+            show_color(ui,"On Primary",theme.color.on_primary());
+            show_color(ui,"Primary",theme.color.primary_container());
+            show_color(ui,"Primary",theme.color.on_primary_container());
         });
         ui.horizontal(|ui| {
-            show_color(ui,"Primary Fixed",theme.color_theme.primary_fixed());
-            show_color(ui,"Primary Fixed Dim",theme.color_theme.primary_fixed_dim());
-            show_color(ui,"On Primary Fixed",theme.color_theme.on_primary_fixed());
-            show_color(ui,"On Primary Fixed Variant",theme.color_theme.on_primary_container());
+            show_color(ui,"Primary Fixed",theme.color.primary_fixed());
+            show_color(ui,"Primary Fixed Dim",theme.color.primary_fixed_dim());
+            show_color(ui,"On Primary Fixed",theme.color.on_primary_fixed());
+            show_color(ui,"On Primary Fixed Variant",theme.color.on_primary_container());
         });
         ui.horizontal(|ui| {
-            show_color(ui,"Secondary",theme.color_theme.secondary());
-            show_color(ui,"On Secondary",theme.color_theme.on_secondary());
-            show_color(ui,"Secondary Container",theme.color_theme.secondary_container());
-            show_color(ui,"on Secondary Container",theme.color_theme.on_secondary_container());
+            show_color(ui,"Secondary",theme.color.secondary());
+            show_color(ui,"On Secondary",theme.color.on_secondary());
+            show_color(ui,"Secondary Container",theme.color.secondary_container());
+            show_color(ui,"on Secondary Container",theme.color.on_secondary_container());
         });
         ui.horizontal(|ui| {
-            show_color(ui,"Secondary Fixed",theme.color_theme.secondary_fixed());
-            show_color(ui,"Secondary Fixed Dim",theme.color_theme.secondary_fixed_dim());
-            show_color(ui,"On Secondary Fixed",theme.color_theme.on_secondary_fixed_());
-            show_color(ui,"On Secondary Fixed Variant",theme.color_theme.on_secondary_fixed_variant());
+            show_color(ui,"Secondary Fixed",theme.color.secondary_fixed());
+            show_color(ui,"Secondary Fixed Dim",theme.color.secondary_fixed_dim());
+            show_color(ui,"On Secondary Fixed",theme.color.on_secondary_fixed_());
+            show_color(ui,"On Secondary Fixed Variant",theme.color.on_secondary_fixed_variant());
         });
         ui.horizontal(|ui| {
-            show_color(ui,"Tertiary",theme.color_theme.tertiary());
-            show_color(ui,"On Tertiary",theme.color_theme.on_tertiary());
-            show_color(ui,"Tertiary Container",theme.color_theme.tertiary_container());
-            show_color(ui,"on Tertiary Container",theme.color_theme.on_tertiary_container());
+            show_color(ui,"Tertiary",theme.color.tertiary());
+            show_color(ui,"On Tertiary",theme.color.on_tertiary());
+            show_color(ui,"Tertiary Container",theme.color.tertiary_container());
+            show_color(ui,"on Tertiary Container",theme.color.on_tertiary_container());
         });
         ui.horizontal(|ui| {
-            show_color(ui,"Tertiary Fixed",theme.color_theme.tertiary_fixed());
-            show_color(ui,"Tertiary Fixed Dim",theme.color_theme.tertiary_fixed_dim());
-            show_color(ui,"On Tertiary Fixed",theme.color_theme.on_tertiary_fixed());
-            show_color(ui,"On Tertiary Fixed Variant",theme.color_theme.on_tertiary_fixed_variant());
+            show_color(ui,"Tertiary Fixed",theme.color.tertiary_fixed());
+            show_color(ui,"Tertiary Fixed Dim",theme.color.tertiary_fixed_dim());
+            show_color(ui,"On Tertiary Fixed",theme.color.on_tertiary_fixed());
+            show_color(ui,"On Tertiary Fixed Variant",theme.color.on_tertiary_fixed_variant());
         });
         ui.horizontal(|ui| {
-            show_color(ui,"Error",theme.color_theme.error());
-            show_color(ui,"On Error",theme.color_theme.on_error());
-            show_color(ui,"Error Container",theme.color_theme.error_container());
-            show_color(ui,"on Error Container",theme.color_theme.on_error_container());
+            show_color(ui,"Error",theme.color.error());
+            show_color(ui,"On Error",theme.color.on_error());
+            show_color(ui,"Error Container",theme.color.error_container());
+            show_color(ui,"on Error Container",theme.color.on_error_container());
         });
         ui.horizontal(|ui| {
-            show_color(ui,"Success",theme.color_theme.success());
-            show_color(ui,"On Success",theme.color_theme.on_success());
-            show_color(ui,"Success Container",theme.color_theme.success_container());
-            show_color(ui,"on Success Container",theme.color_theme.on_success_container());
+            show_color(ui,"Success",theme.color.success());
+            show_color(ui,"On Success",theme.color.on_success());
+            show_color(ui,"Success Container",theme.color.success_container());
+            show_color(ui,"on Success Container",theme.color.on_success_container());
         });
         ui.horizontal(|ui| {
-            show_color(ui,"Warning",theme.color_theme.warning());
-            show_color(ui,"On Warning",theme.color_theme.on_warning());
-            show_color(ui,"Warning Container",theme.color_theme.warning_container());
-            show_color(ui,"on Warning Container",theme.color_theme.on_warning_container());
+            show_color(ui,"Warning",theme.color.warning());
+            show_color(ui,"On Warning",theme.color.on_warning());
+            show_color(ui,"Warning Container",theme.color.warning_container());
+            show_color(ui,"on Warning Container",theme.color.on_warning_container());
         });
         ui.horizontal(|ui| {
-            show_color(ui,"Surface Dim",theme.color_theme.surface_dim());
-            show_color(ui,"Surface",theme.color_theme.surface());
-            show_color(ui,"Surface Bright",theme.color_theme.surface_bright());
+            show_color(ui,"Surface Dim",theme.color.surface_dim());
+            show_color(ui,"Surface",theme.color.surface());
+            show_color(ui,"Surface Bright",theme.color.surface_bright());
         });
         ui.horizontal(|ui| {
-            show_color(ui,"Surface Container Lowest",theme.color_theme.surface_container_lowest());
-            show_color(ui,"Surface Container Low",theme.color_theme.surface_container_low());
-            show_color(ui,"Surface Container",theme.color_theme.surface_container());
-            show_color(ui,"Surface Container high",theme.color_theme.surface_container_high());
-            show_color(ui,"Surface Container highest",theme.color_theme.surface_container_highest());
+            show_color(ui,"Surface Container Lowest",theme.color.surface_container_lowest());
+            show_color(ui,"Surface Container Low",theme.color.surface_container_low());
+            show_color(ui,"Surface Container",theme.color.surface_container());
+            show_color(ui,"Surface Container high",theme.color.surface_container_high());
+            show_color(ui,"Surface Container highest",theme.color.surface_container_highest());
         });
         ui.horizontal(|ui| {
-            show_color(ui,"Surface Tint",theme.color_theme.surface_tint());
-            show_color(ui,"Surface Variant",theme.color_theme.surface_variant());
-            show_color(ui,"On Surface",theme.color_theme.on_surface());
-            show_color(ui,"On Surface Variant",theme.color_theme.on_surface_variant());
+            show_color(ui,"Surface Tint",theme.color.surface_tint());
+            show_color(ui,"Surface Variant",theme.color.surface_variant());
+            show_color(ui,"On Surface",theme.color.on_surface());
+            show_color(ui,"On Surface Variant",theme.color.on_surface_variant());
         });
         ui.horizontal(|ui| {
-            show_color(ui,"Inverse Primary",theme.color_theme.inverse_primary());
-            show_color(ui,"Inverse Surface",theme.color_theme.inverse_surface());
-            show_color(ui,"Inverse On Surface",theme.color_theme.inverse_on_surface());
+            show_color(ui,"Inverse Primary",theme.color.inverse_primary());
+            show_color(ui,"Inverse Surface",theme.color.inverse_surface());
+            show_color(ui,"Inverse On Surface",theme.color.inverse_on_surface());
         });
         ui.horizontal(|ui| {
-            show_color(ui,"Background",theme.color_theme.background());
-            show_color(ui,"On Background",theme.color_theme.on_background());
+            show_color(ui,"Background",theme.color.background());
+            show_color(ui,"On Background",theme.color.on_background());
         });
         ui.horizontal(|ui| {
-            show_color(ui,"Outline",theme.color_theme.outline());
-            show_color(ui,"Outline Variant",theme.color_theme.outline_variant());
+            show_color(ui,"Outline",theme.color.outline());
+            show_color(ui,"Outline Variant",theme.color.outline_variant());
         });
         ui.horizontal(|ui| {
-            show_color(ui,"Scrim",theme.color_theme.scrim());
-            show_color(ui,"Shadow",theme.color_theme.shadow());
+            show_color(ui,"Scrim",theme.color.scrim());
+            show_color(ui,"Shadow",theme.color.shadow());
         });
     }
 
     fn show_theme(&mut self,ui: &mut egui::Ui) {
-        let theme = ui.ctx().color_theme(|theme|theme.clone());
+        let theme = ui.ctx().style_theme(|theme|theme.clone());
         let corner_radius = theme.corner_radius;
         ui.label("Corner Radius:");
         ui.label(format!("Huge: {}", corner_radius.huge.ne));

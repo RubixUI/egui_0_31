@@ -384,8 +384,8 @@ impl Ui {
         &self.style
     }
     #[inline]
-    pub fn color_theme<R>(&self,reader: impl FnOnce(&Theme) -> R) -> R {
-        self.ctx().color_theme(reader)
+    pub fn style_theme<R>(&self,reader: impl FnOnce(&Theme) -> R) -> R {
+        self.ctx().style_theme(reader)
     }
 
     /// Mutably borrow internal [`Style`].

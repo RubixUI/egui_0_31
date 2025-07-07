@@ -1875,7 +1875,7 @@ impl Context {
         self.options(|opt| opt.style().clone())
     }
     #[inline]
-    pub fn color_theme<R>(&self,reader: impl FnOnce(&EguiTheme) -> R) -> R {
+    pub fn style_theme<R>(&self,reader: impl FnOnce(&EguiTheme) -> R) -> R {
         self.options(|opt| {
             let theme_guard = opt.theme.read();
             reader(&*theme_guard)
