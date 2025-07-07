@@ -468,7 +468,8 @@ pub use egui_theme::{
     BrightnessMode,
     SpaceMode,
     CornerRadiusMode,
-    DynamicColor
+    DynamicColor,
+    Color32OpacityExt
 };
 
 pub use epaint::{
