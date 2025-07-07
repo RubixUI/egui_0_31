@@ -3,9 +3,9 @@
 
 use emath::GuiRounding as _;
 use epaint::mutex::RwLock;
-use egui_theme::{ Theme };
+use egui_theme::{ArcFontTheme, ColorTheme, SizeVariant, Theme, ThemeGap};
 use std::{any::Any, hash::Hash, sync::Arc};
-
+use epaint::{CornerRadius, Margin};
 use crate::close_tag::ClosableTag;
 #[cfg(debug_assertions)]
 use crate::Stroke;
@@ -386,6 +386,31 @@ impl Ui {
     #[inline]
     pub fn style_theme<R>(&self,reader: impl FnOnce(&Theme) -> R) -> R {
         self.ctx().style_theme(reader)
+    }
+
+    #[inline]
+    pub fn color_theme<R>(&self,reader: impl FnOnce(&ColorTheme) -> R) -> R {
+        self.ctx().color_theme(reader)
+    }
+
+    #[inline]
+    pub fn gap_theme<R>(&self,reader: impl FnOnce(&ThemeGap) -> R) -> R {
+        self.ctx().gap_theme(reader)
+    }
+
+    #[inline]
+    pub fn padding_theme<R>(&self,reader: impl FnOnce(&SizeVariant<Margin>) -> R) -> R {
+        self.ctx().padding_theme(reader)
+    }
+
+    #[inline]
+    pub fn corner_radius_theme<R>(&self,reader: impl FnOnce(&SizeVariant<CornerRadius>) -> R) -> R {
+        self.ctx().corner_radius_theme(reader)
+    }
+
+    #[inline]
+    pub fn font_theme(&self) -> ArcFontTheme {
+        self.ctx().font_theme()
     }
 
     /// Mutably borrow internal [`Style`].

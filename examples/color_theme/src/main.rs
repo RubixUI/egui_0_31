@@ -116,101 +116,100 @@ impl MyApp {
     }
 
     fn show_colors(&mut self,ui: &mut egui::Ui) {
-        let theme = ui.ctx().style_theme(|theme|theme.clone());
+        let color = ui.ctx().color_theme(|color|color.clone());
         ui.horizontal(|ui| {
-            show_color(ui,"Primary",theme.color.primary());
-            show_color(ui,"On Primary",theme.color.on_primary());
-            show_color(ui,"Primary",theme.color.primary_container());
-            show_color(ui,"Primary",theme.color.on_primary_container());
+            show_color(ui,"Primary",color.primary());
+            show_color(ui,"On Primary",color.on_primary());
+            show_color(ui,"Primary",color.primary_container());
+            show_color(ui,"Primary",color.on_primary_container());
         });
         ui.horizontal(|ui| {
-            show_color(ui,"Primary Fixed",theme.color.primary_fixed());
-            show_color(ui,"Primary Fixed Dim",theme.color.primary_fixed_dim());
-            show_color(ui,"On Primary Fixed",theme.color.on_primary_fixed());
-            show_color(ui,"On Primary Fixed Variant",theme.color.on_primary_container());
+            show_color(ui,"Primary Fixed",color.primary_fixed());
+            show_color(ui,"Primary Fixed Dim",color.primary_fixed_dim());
+            show_color(ui,"On Primary Fixed",color.on_primary_fixed());
+            show_color(ui,"On Primary Fixed Variant",color.on_primary_container());
         });
         ui.horizontal(|ui| {
-            show_color(ui,"Secondary",theme.color.secondary());
-            show_color(ui,"On Secondary",theme.color.on_secondary());
-            show_color(ui,"Secondary Container",theme.color.secondary_container());
-            show_color(ui,"on Secondary Container",theme.color.on_secondary_container());
+            show_color(ui,"Secondary",color.secondary());
+            show_color(ui,"On Secondary",color.on_secondary());
+            show_color(ui,"Secondary Container",color.secondary_container());
+            show_color(ui,"on Secondary Container",color.on_secondary_container());
         });
         ui.horizontal(|ui| {
-            show_color(ui,"Secondary Fixed",theme.color.secondary_fixed());
-            show_color(ui,"Secondary Fixed Dim",theme.color.secondary_fixed_dim());
-            show_color(ui,"On Secondary Fixed",theme.color.on_secondary_fixed_());
-            show_color(ui,"On Secondary Fixed Variant",theme.color.on_secondary_fixed_variant());
+            show_color(ui,"Secondary Fixed",color.secondary_fixed());
+            show_color(ui,"Secondary Fixed Dim",color.secondary_fixed_dim());
+            show_color(ui,"On Secondary Fixed",color.on_secondary_fixed_());
+            show_color(ui,"On Secondary Fixed Variant",color.on_secondary_fixed_variant());
         });
         ui.horizontal(|ui| {
-            show_color(ui,"Tertiary",theme.color.tertiary());
-            show_color(ui,"On Tertiary",theme.color.on_tertiary());
-            show_color(ui,"Tertiary Container",theme.color.tertiary_container());
-            show_color(ui,"on Tertiary Container",theme.color.on_tertiary_container());
+            show_color(ui,"Tertiary",color.tertiary());
+            show_color(ui,"On Tertiary",color.on_tertiary());
+            show_color(ui,"Tertiary Container",color.tertiary_container());
+            show_color(ui,"on Tertiary Container",color.on_tertiary_container());
         });
         ui.horizontal(|ui| {
-            show_color(ui,"Tertiary Fixed",theme.color.tertiary_fixed());
-            show_color(ui,"Tertiary Fixed Dim",theme.color.tertiary_fixed_dim());
-            show_color(ui,"On Tertiary Fixed",theme.color.on_tertiary_fixed());
-            show_color(ui,"On Tertiary Fixed Variant",theme.color.on_tertiary_fixed_variant());
+            show_color(ui,"Tertiary Fixed",color.tertiary_fixed());
+            show_color(ui,"Tertiary Fixed Dim",color.tertiary_fixed_dim());
+            show_color(ui,"On Tertiary Fixed",color.on_tertiary_fixed());
+            show_color(ui,"On Tertiary Fixed Variant",color.on_tertiary_fixed_variant());
         });
         ui.horizontal(|ui| {
-            show_color(ui,"Error",theme.color.error());
-            show_color(ui,"On Error",theme.color.on_error());
-            show_color(ui,"Error Container",theme.color.error_container());
-            show_color(ui,"on Error Container",theme.color.on_error_container());
+            show_color(ui,"Error",color.error());
+            show_color(ui,"On Error",color.on_error());
+            show_color(ui,"Error Container",color.error_container());
+            show_color(ui,"on Error Container",color.on_error_container());
         });
         ui.horizontal(|ui| {
-            show_color(ui,"Success",theme.color.success());
-            show_color(ui,"On Success",theme.color.on_success());
-            show_color(ui,"Success Container",theme.color.success_container());
-            show_color(ui,"on Success Container",theme.color.on_success_container());
+            show_color(ui,"Success",color.success());
+            show_color(ui,"On Success",color.on_success());
+            show_color(ui,"Success Container",color.success_container());
+            show_color(ui,"on Success Container",color.on_success_container());
         });
         ui.horizontal(|ui| {
-            show_color(ui,"Warning",theme.color.warning());
-            show_color(ui,"On Warning",theme.color.on_warning());
-            show_color(ui,"Warning Container",theme.color.warning_container());
-            show_color(ui,"on Warning Container",theme.color.on_warning_container());
+            show_color(ui,"Warning",color.warning());
+            show_color(ui,"On Warning",color.on_warning());
+            show_color(ui,"Warning Container",color.warning_container());
+            show_color(ui,"on Warning Container",color.on_warning_container());
         });
         ui.horizontal(|ui| {
-            show_color(ui,"Surface Dim",theme.color.surface_dim());
-            show_color(ui,"Surface",theme.color.surface());
-            show_color(ui,"Surface Bright",theme.color.surface_bright());
+            show_color(ui,"Surface Dim",color.surface_dim());
+            show_color(ui,"Surface",color.surface());
+            show_color(ui,"Surface Bright",color.surface_bright());
         });
         ui.horizontal(|ui| {
-            show_color(ui,"Surface Container Lowest",theme.color.surface_container_lowest());
-            show_color(ui,"Surface Container Low",theme.color.surface_container_low());
-            show_color(ui,"Surface Container",theme.color.surface_container());
-            show_color(ui,"Surface Container high",theme.color.surface_container_high());
-            show_color(ui,"Surface Container highest",theme.color.surface_container_highest());
+            show_color(ui,"Surface Container Lowest",color.surface_container_lowest());
+            show_color(ui,"Surface Container Low",color.surface_container_low());
+            show_color(ui,"Surface Container",color.surface_container());
+            show_color(ui,"Surface Container high",color.surface_container_high());
+            show_color(ui,"Surface Container highest",color.surface_container_highest());
         });
         ui.horizontal(|ui| {
-            show_color(ui,"Surface Tint",theme.color.surface_tint());
-            show_color(ui,"Surface Variant",theme.color.surface_variant());
-            show_color(ui,"On Surface",theme.color.on_surface());
-            show_color(ui,"On Surface Variant",theme.color.on_surface_variant());
+            show_color(ui,"Surface Tint",color.surface_tint());
+            show_color(ui,"Surface Variant",color.surface_variant());
+            show_color(ui,"On Surface",color.on_surface());
+            show_color(ui,"On Surface Variant",color.on_surface_variant());
         });
         ui.horizontal(|ui| {
-            show_color(ui,"Inverse Primary",theme.color.inverse_primary());
-            show_color(ui,"Inverse Surface",theme.color.inverse_surface());
-            show_color(ui,"Inverse On Surface",theme.color.inverse_on_surface());
+            show_color(ui,"Inverse Primary",color.inverse_primary());
+            show_color(ui,"Inverse Surface",color.inverse_surface());
+            show_color(ui,"Inverse On Surface",color.inverse_on_surface());
         });
         ui.horizontal(|ui| {
-            show_color(ui,"Background",theme.color.background());
-            show_color(ui,"On Background",theme.color.on_background());
+            show_color(ui,"Background",color.background());
+            show_color(ui,"On Background",color.on_background());
         });
         ui.horizontal(|ui| {
-            show_color(ui,"Outline",theme.color.outline());
-            show_color(ui,"Outline Variant",theme.color.outline_variant());
+            show_color(ui,"Outline",color.outline());
+            show_color(ui,"Outline Variant",color.outline_variant());
         });
         ui.horizontal(|ui| {
-            show_color(ui,"Scrim",theme.color.scrim());
-            show_color(ui,"Shadow",theme.color.shadow());
+            show_color(ui,"Scrim",color.scrim());
+            show_color(ui,"Shadow",color.shadow());
         });
     }
 
     fn show_theme(&mut self,ui: &mut egui::Ui) {
-        let theme = ui.ctx().style_theme(|theme|theme.clone());
-        let corner_radius = theme.corner_radius;
+        let corner_radius = ui.ctx().corner_radius_theme(|theme|theme.clone());
         ui.label("Corner Radius:");
         ui.label(format!("Huge: {}", corner_radius.huge.ne));
         ui.label(format!("Extra Large: {}", corner_radius.extra_large.ne));
@@ -220,7 +219,7 @@ impl MyApp {
         ui.label(format!("Extra Small: {}", corner_radius.extra_small.ne));
         ui.label(format!("Mini: {}", corner_radius.mini.ne));
         ui.add_space(40.);
-        let padding = theme.padding;
+        let padding = ui.ctx().padding_theme(|theme|theme.clone());
         ui.label("Padding:");
         ui.label(format!("Huge: {} {}", padding.huge.left,padding.huge.top));
         ui.label(format!("Extra Large: {} {}", padding.extra_large.left,padding.extra_large.top));
@@ -230,7 +229,8 @@ impl MyApp {
         ui.label(format!("Extra Small: {} {}", padding.extra_small.left,padding.extra_small.top));
         ui.label(format!("Mini: {} {}", padding.mini.left,padding.mini.top));
         ui.add_space(40.);
-        let gap_h = theme.gap.horizontal;
+        let gap = ui.ctx().gap_theme(|theme|theme.clone());
+        let gap_h = gap.horizontal;
         ui.label("Gap Horizontal:");
         ui.label(format!("Huge: {}", gap_h.huge));
         ui.label(format!("Extra Large: {}", gap_h.extra_large));
@@ -240,7 +240,7 @@ impl MyApp {
         ui.label(format!("Extra Small: {}", gap_h.extra_small));
         ui.label(format!("Mini: {}", gap_h.mini));
         ui.add_space(40.);
-        let gap_v = theme.gap.vertical;
+        let gap_v = gap.vertical;
         ui.label("Gap Vertical:");
         ui.label(format!("Huge: {}", gap_v.huge));
         ui.label(format!("Extra Large: {}", gap_v.extra_large));

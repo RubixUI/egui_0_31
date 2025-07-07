@@ -15,6 +15,7 @@ mod dislike;
 mod temperature;
 mod dynamic_color;
 mod contrast;
+mod font_theme;
 
 #[derive(PartialEq, Eq)]
 pub enum Palette {
@@ -34,5 +35,6 @@ pub(crate) use ahash::HashMap as Map;
 pub(crate) use color_variant::*;
 pub(crate) use utils::*;
 pub use theme::*;
-pub use color_theme::DynamicColor;
+pub use font_theme::*;
+pub use color_theme::{DynamicColor,ColorTheme};
 pub use color::Color32OpacityExt;

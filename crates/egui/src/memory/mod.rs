@@ -9,7 +9,7 @@ use crate::{
     area, vec2, EventFilter, Id, IdMap, LayerId, Order, Pos2, Rangef, RawInput, Rect, Style, Vec2,
     ViewportId, ViewportIdMap, ViewportIdSet,
 };
-use egui_theme::{ArcTheme, Theme as EguiTheme, ThemeBuilder};
+use egui_theme::{ArcFontTheme, ArcTheme, Theme as EguiTheme, ThemeBuilder};
 
 mod theme;
 pub use theme::{Theme, ThemePreference};
@@ -197,6 +197,8 @@ Options {
     /// The default style for new [`Ui`](crate::Ui):s in dark mode.
     #[cfg_attr(feature = "serde", serde(skip))]
     pub theme: ArcTheme,
+    #[cfg_attr(feature = "serde", serde(skip))]
+    pub font_theme: ArcFontTheme,
 
     /// Preference for selection between dark and light [`crate::Context::style`]
     /// as the active style used by all subsequent windows, panels, etc.
@@ -329,6 +331,7 @@ impl Default for Options {
             dark_style: std::sync::Arc::new(Theme::Dark.default_style()),
             light_style: std::sync::Arc::new(Theme::Light.default_style()),
             theme: ArcTheme::default(),
+            font_theme: Default::default(),
             theme_preference: Default::default(),
             fallback_theme: Theme::Dark,
             system_theme: None,
@@ -395,7 +398,8 @@ impl Options {
         let Self {
             dark_style, // covered above
             light_style,
-            theme, 
+            theme,
+            font_theme,
             theme_preference,
             fallback_theme: _,
             system_theme: _,

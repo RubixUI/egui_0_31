@@ -4,16 +4,7 @@ use std::{borrow::Cow, cell::RefCell, panic::Location, sync::Arc, time::Duration
 use std::ops::Deref;
 use containers::area::AreaState;
 use emath::GuiRounding as _;
-use epaint::{
-    emath::{self, TSTransform},
-    mutex::RwLock,
-    stats::PaintStats,
-    tessellator,
-    text::{FontInsert, FontPriority, Fonts},
-    util::OrderedFloat,
-    vec2, ClippedPrimitive, ClippedShape, Color32, ImageData, ImageDelta, Pos2, Rect, StrokeKind,
-    TessellationOptions, TextureAtlas, TextureId, Vec2,
-};
+use epaint::{emath::{self, TSTransform}, mutex::RwLock, stats::PaintStats, tessellator, text::{FontInsert, FontPriority, Fonts}, util::OrderedFloat, vec2, ClippedPrimitive, ClippedShape, Color32, CornerRadius, ImageData, ImageDelta, Margin, Pos2, Rect, StrokeKind, TessellationOptions, TextureAtlas, TextureId, Vec2};
 
 use crate::{
     animation_manager::AnimationManager,
@@ -39,7 +30,7 @@ use crate::{
     TextStyle, TextureHandle, TextureOptions, Ui, ViewportBuilder, ViewportCommand, ViewportId,
     ViewportIdMap, ViewportIdPair, ViewportIdSet, ViewportOutput, Widget, WidgetRect, WidgetText,
 };
-use egui_theme::Theme as EguiTheme;
+use egui_theme::{ArcFontTheme, ColorTheme, FontTheme, SizeVariant, Theme as EguiTheme, ThemeGap};
 
 #[cfg(feature = "accesskit")]
 use crate::IdMap;
@@ -767,7 +758,7 @@ impl Default for Context {
     }
     #[cfg(feature = "roboto_font")]
     fn default() -> Self {
-        let font_defs = EguiTheme::roboto_fonts();
+        let font_defs = FontTheme::roboto_fonts();
         let ctx_impl = ContextImpl {
             embed_viewports: true,
             font_definitions: font_defs,
@@ -1880,6 +1871,40 @@ impl Context {
             let theme_guard = opt.theme.read();
             reader(&*theme_guard)
         })
+    }
+
+    #[inline]
+    pub fn color_theme<R>(&self,reader: impl FnOnce(&ColorTheme) -> R) -> R {
+        self.options(|opt| {
+            let theme_guard = opt.theme.read();
+            reader(&theme_guard.color)
+        })
+    }
+
+    #[inline]
+    pub fn gap_theme<R>(&self,reader: impl FnOnce(&ThemeGap) -> R) -> R {
+        self.options(|opt| {
+            let theme_guard = opt.theme.read();
+            reader(&theme_guard.gap)
+        })
+    }
+
+    pub fn padding_theme<R>(&self,reader: impl FnOnce(&SizeVariant<Margin>) -> R) -> R {
+        self.options(|opt| {
+            let theme_guard = opt.theme.read();
+            reader(&theme_guard.padding)
+        })
+    }
+
+    pub fn corner_radius_theme<R>(&self,reader: impl FnOnce(&SizeVariant<CornerRadius>) -> R) -> R {
+        self.options(|opt| {
+            let theme_guard = opt.theme.read();
+            reader(&theme_guard.corner_radius)
+        })
+    }
+
+    pub fn font_theme(&self) -> ArcFontTheme {
+        self.options(|opt| opt.font_theme.clone())
     }
 
     pub fn set_color_theme(&self, theme: EguiTheme) {
