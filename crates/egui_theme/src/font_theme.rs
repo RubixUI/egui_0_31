@@ -3,13 +3,14 @@ use std::sync::Arc;
 use epaint::{FontFamily, FontId};
 use epaint::text::{FontData, FontDefinitions};
 #[derive(Default,Debug, Clone,PartialEq)]
-pub struct Typography {
+pub struct Font {
     pub line_height: f32,
+    pub font_size: f32,
     pub font_id: FontId,
 }
 
 #[derive(Default, Debug, Hash, Ord, Clone, PartialEq, Eq, PartialOrd)]
-pub enum TypographySize {
+pub enum FontSize {
     #[default]
     Medium,
     Small,
@@ -17,12 +18,12 @@ pub enum TypographySize {
 }
 
 #[derive(Debug, Hash, Ord, Clone, PartialEq, Eq, PartialOrd)]
-pub struct TypographyVariable {
+pub struct FontVariable {
     bold: bool,
     italic: bool,
-    size: TypographySize
+    size: FontSize
 }
-impl Default for TypographyVariable {
+impl Default for FontVariable {
     fn default() -> Self {
         Self {
             bold: false,
@@ -31,7 +32,7 @@ impl Default for TypographyVariable {
         }
     }
 }
-impl TypographyVariable {
+impl FontVariable {
     pub fn bold(mut self) -> Self {
         self.bold = true;
         self
@@ -41,81 +42,81 @@ impl TypographyVariable {
         self
     }
     pub fn small(mut self) -> Self {
-        self.size = TypographySize::Small;
+        self.size = FontSize::Small;
         self
     }
     pub fn large(mut self) -> Self {
-        self.size = TypographySize::Large;
+        self.size = FontSize::Large;
         self
     }
 }
 #[derive(Debug, Clone, Hash, Ord, Eq, PartialEq, PartialOrd)]
-pub enum TypographyStyles {
-    Display(TypographyVariable),
-    Headline(TypographyVariable),
-    Title(TypographyVariable),
-    Body(TypographyVariable),
-    Label(TypographyVariable),
-    Monospace(TypographyVariable),
+pub enum FontStyles {
+    Display(FontVariable),
+    Headline(FontVariable),
+    Title(FontVariable),
+    Body(FontVariable),
+    Label(FontVariable),
+    Monospace(FontVariable),
     Name(String)
 }
 
-impl TypographyStyles {
+impl FontStyles {
     pub fn label() -> Self {
-        TypographyStyles::Label(TypographyVariable::default())
+        FontStyles::Label(FontVariable::default())
     }
     pub fn display() -> Self {
-        TypographyStyles::Display(TypographyVariable::default())
+        FontStyles::Display(FontVariable::default())
     }
     pub fn body() -> Self {
-        TypographyStyles::Body(TypographyVariable::default())
+        FontStyles::Body(FontVariable::default())
     }
 
     pub fn title() -> Self {
-        TypographyStyles::Title(TypographyVariable::default())
+        FontStyles::Title(FontVariable::default())
     }
     pub fn headline() -> Self {
-        TypographyStyles::Headline(TypographyVariable::default())
+        FontStyles::Headline(FontVariable::default())
     }
     pub fn monospace() -> Self {
-        TypographyStyles::Monospace(TypographyVariable::default())
+        FontStyles::Monospace(FontVariable::default())
     }
     pub fn name(name:String) -> Self {
-        TypographyStyles::name(name)
+        FontStyles::name(name)
     }
-    pub fn get_variable(&self) -> TypographyVariable {
+    pub fn get_variable(&self) -> FontVariable {
         match self {
-            TypographyStyles::Display(v)
-            | TypographyStyles::Headline(v)
-            | TypographyStyles::Title(v)
-            | TypographyStyles::Body(v)
-            | TypographyStyles::Label(v)
-            | TypographyStyles::Monospace(v) => {
+            FontStyles::Display(v)
+            | FontStyles::Headline(v)
+            | FontStyles::Title(v)
+            | FontStyles::Body(v)
+            | FontStyles::Label(v)
+            | FontStyles::Monospace(v) => {
                 v.clone()
             }
-            TypographyStyles::Name(_) => TypographyVariable::default(),
+            FontStyles::Name(_) => FontVariable::default(),
         }
     }
-    fn set_variable(self,var:TypographyVariable) -> Self {
+    fn set_variable(self,var:FontVariable) -> Self {
         match self {
-            TypographyStyles::Display(_) => {
-                TypographyStyles::Display(var)
+            FontStyles::Display(_) => {
+                FontStyles::Display(var)
             },
-            TypographyStyles::Headline(_) => {
-                TypographyStyles::Headline(var)
+            FontStyles::Headline(_) => {
+                FontStyles::Headline(var)
             },
-            TypographyStyles::Body(_) => {
-                TypographyStyles::Body(var)
+            FontStyles::Body(_) => {
+                FontStyles::Body(var)
             },
-            TypographyStyles::Label(_) => {
-                TypographyStyles::Label(var)
+            FontStyles::Label(_) => {
+                FontStyles::Label(var)
             },
-            TypographyStyles::Monospace(_) => {
-                TypographyStyles::Monospace(var)
+            FontStyles::Monospace(_) => {
+                FontStyles::Monospace(var)
             },
-            TypographyStyles::Name(_) => self,
-            TypographyStyles::Title(_) => {
-                TypographyStyles::Title(var)
+            FontStyles::Name(_) => self,
+            FontStyles::Title(_) => {
+                FontStyles::Title(var)
             }
         }
     }
@@ -142,7 +143,7 @@ impl TypographyStyles {
 }
 #[derive(Debug, Clone,PartialEq)]
 pub struct FontTheme {
-    pub typography: BTreeMap<TypographyStyles, Typography>,
+    pub font_map: BTreeMap<FontStyles, Font>,
 }
 impl FontTheme {
     pub fn roboto_fonts() -> FontDefinitions {
@@ -237,8 +238,8 @@ impl FontTheme {
     }
 
     /// Helper function to get font_id for a typography design
-    fn get_font_id(&self, style: TypographyStyles) -> FontId {
-        self.typography.get(&style)
+    fn get_font_id(&self, style: FontStyles) -> FontId {
+        self.font_map.get(&style)
             .map(|t| t.font_id.clone())
             .unwrap_or_default()
     }
@@ -246,30 +247,30 @@ impl FontTheme {
 
     /// Get font_id for a custom named typography design
     pub fn font_id_named(&self, name: &str) -> FontId {
-        self.get_font_id(TypographyStyles::Name(name.to_string()))
+        self.get_font_id(FontStyles::Name(name.to_string()))
     }
 
     /// Helper function to get line height for a typography design
-    fn get_line_height(&self, style: TypographyStyles) -> Option<f32> {
-        self.typography.get(&style)
+    fn get_line_height(&self, style: FontStyles) -> Option<f32> {
+        self.font_map.get(&style)
             .map(|t| t.line_height)
     }
 }
 impl Default for FontTheme {
     fn default() -> Self {
-        let mut typography = BTreeMap::new();
-        default_typography(&mut typography);
-        Self { typography }
+        let mut font_map = BTreeMap::new();
+        default_typography(&mut font_map);
+        Self { font_map }
     }
 }
 
 impl FontTheme {
-    pub fn typography_label(&self) -> Typography {
-        self.typography.get(&TypographyStyles::label()).unwrap().clone()
+    pub fn font_label(&self) -> Font {
+        self.font_map.get(&FontStyles::label()).unwrap().clone()
     }
 
-    pub fn typography_body(&self) -> Typography {
-        self.typography.get(&TypographyStyles::body()).unwrap().clone()
+    pub fn font_body(&self) -> Font {
+        self.font_map.get(&FontStyles::body()).unwrap().clone()
     }
 }
 #[derive(Debug, Clone)]
@@ -288,13 +289,13 @@ impl Default for ArcFontTheme {
 }
 
 #[cfg(feature = "roboto_font")]
-fn font_family(token: &TypographyStyles) -> FontFamily {
+fn font_family(token: &FontStyles) -> FontFamily {
     match &token {
-        TypographyStyles::Display(t)
-        | TypographyStyles::Headline(t)
-        | TypographyStyles::Title(t)
-        | TypographyStyles::Body(t)
-        | TypographyStyles::Label(t) => {
+        FontStyles::Display(t)
+        | FontStyles::Headline(t)
+        | FontStyles::Title(t)
+        | FontStyles::Body(t)
+        | FontStyles::Label(t) => {
             match (t.bold, t.italic) {
                 (true, true) => FontFamily::Name("semibold_italic".into()),
                 (true, false) => FontFamily::Name("semibold".into()),
@@ -302,7 +303,7 @@ fn font_family(token: &TypographyStyles) -> FontFamily {
                 (false, false) => FontFamily::Name("regular".into()),
             }
         }
-        TypographyStyles::Monospace(t) => {
+        FontStyles::Monospace(t) => {
             match (t.bold, t.italic) {
                 (true, true) => FontFamily::Name("mono_bold_italic".into()),
                 (true, false) => FontFamily::Name("mono_bold".into()),
@@ -310,90 +311,90 @@ fn font_family(token: &TypographyStyles) -> FontFamily {
                 (false, false) => FontFamily::Name("mono".into()),
             }
         }
-        TypographyStyles::Name(_) => {
+        FontStyles::Name(_) => {
             FontFamily::Name("regular".into())
         }
     }
 }
 
 #[cfg(not(feature = "roboto_font"))]
-fn font_family(token: &TypographyStyles) -> FontFamily {
+fn font_family(token: &FontStyles) -> FontFamily {
     match &token {
-        TypographyStyles::Display(t)
-        | TypographyStyles::Headline(t)
-        | TypographyStyles::Title(t)
-        | TypographyStyles::Body(t)
-        | TypographyStyles::Label(t) => {
+        FontStyles::Display(t)
+        | FontStyles::Headline(t)
+        | FontStyles::Title(t)
+        | FontStyles::Body(t)
+        | FontStyles::Label(t) => {
             FontFamily::Proportional
         }
-        TypographyStyles::Monospace(t) => {
+        FontStyles::Monospace(t) => {
             FontFamily::Monospace
         }
-        TypographyStyles::Name(_) => {
+        FontStyles::Name(_) => {
             FontFamily::Name("regular".into())
         }
     }
 }
 
-fn default_typography(typography: &mut BTreeMap<TypographyStyles, Typography>) {
+fn default_typography(typography: &mut BTreeMap<FontStyles, Font>) {
     let update_font_id = |
-        typography: &mut BTreeMap<TypographyStyles, Typography>,
-        token: TypographyStyles| {
+        typography: &mut BTreeMap<FontStyles, Font>,
+        token: FontStyles| {
         let (font_size,line_height) = match &token {
-            TypographyStyles::Display(t) => {
+            FontStyles::Display(t) => {
                 match t.size {
-                    TypographySize::Large => (57.,64.),
-                    TypographySize::Medium => (45.,52.),
-                    TypographySize::Small => (36.,44.),
+                    FontSize::Large => (57.,64.),
+                    FontSize::Medium => (45.,52.),
+                    FontSize::Small => (36.,44.),
                 }
             }
-            TypographyStyles::Headline(t) => {
+            FontStyles::Headline(t) => {
                 match t.size {
-                    TypographySize::Large => (32.,40.),
-                    TypographySize::Medium => (28.,36.),
-                    TypographySize::Small => (24.,32.),
+                    FontSize::Large => (32.,40.),
+                    FontSize::Medium => (28.,36.),
+                    FontSize::Small => (24.,32.),
                 }
             }
-            TypographyStyles::Title(t) => {
+            FontStyles::Title(t) => {
                 match t.size {
-                    TypographySize::Large => (22.,28.),
-                    TypographySize::Medium => (16.,24.),
-                    TypographySize::Small => (14.,20.),
+                    FontSize::Large => (22.,28.),
+                    FontSize::Medium => (16.,24.),
+                    FontSize::Small => (14.,20.),
                 }
             }
-            TypographyStyles::Body(t) | TypographyStyles::Monospace(t) => {
+            FontStyles::Body(t) | FontStyles::Monospace(t) => {
                 match t.size {
-                    TypographySize::Large => (16.,24.),
-                    TypographySize::Medium => (14.,20.),
-                    TypographySize::Small => (12.,16.),
+                    FontSize::Large => (16.,24.),
+                    FontSize::Medium => (14.,20.),
+                    FontSize::Small => (12.,16.),
                 }
             }
-            TypographyStyles::Label(t) => {
+            FontStyles::Label(t) => {
                 match t.size {
-                    TypographySize::Large => (14.,20.),
-                    TypographySize::Medium => (12.,16.),
-                    TypographySize::Small => (11.,16.),
+                    FontSize::Large => (14.,20.),
+                    FontSize::Medium => (12.,16.),
+                    FontSize::Small => (11.,16.),
                 }
             }
-            TypographyStyles::Name(t) => {
+            FontStyles::Name(t) => {
                 (14.,20.)
             }
         };
         let font_f = font_family(&token);
-        typography.insert(token, Typography { font_id:FontId::new(font_size,font_f), line_height });
+        typography.insert(token, Font { font_id:FontId::new(font_size,font_f), line_height, font_size });
     };
     let bools = [true, false];
-    let sizes = [TypographySize::Small, TypographySize::Medium, TypographySize::Large];
+    let sizes = [FontSize::Small, FontSize::Medium, FontSize::Large];
     for &bold in &bools {
         for &italic in &bools {
             for size in &sizes {
-                let t = TypographyVariable { bold, italic, size: size.clone() };
-                update_font_id(typography, TypographyStyles::Display(t.clone()));
-                update_font_id(typography, TypographyStyles::Headline(t.clone()));
-                update_font_id(typography, TypographyStyles::Title(t.clone()));
-                update_font_id(typography, TypographyStyles::Body(t.clone()));
-                update_font_id(typography, TypographyStyles::Label(t.clone()));
-                update_font_id(typography, TypographyStyles::Monospace(t.clone()));
+                let t = FontVariable { bold, italic, size: size.clone() };
+                update_font_id(typography, FontStyles::Display(t.clone()));
+                update_font_id(typography, FontStyles::Headline(t.clone()));
+                update_font_id(typography, FontStyles::Title(t.clone()));
+                update_font_id(typography, FontStyles::Body(t.clone()));
+                update_font_id(typography, FontStyles::Label(t.clone()));
+                update_font_id(typography, FontStyles::Monospace(t.clone()));
             }
         }
     }

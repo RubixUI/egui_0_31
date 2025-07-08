@@ -469,7 +469,9 @@ pub use egui_theme::{
     SpaceMode,
     CornerRadiusMode,
     DynamicColor,
-    Color32OpacityExt
+    Color32OpacityExt,
+    Font,FontSize,
+    FontStyles,FontVariable,
 };
 
 pub use epaint::{
