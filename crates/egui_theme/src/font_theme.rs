@@ -244,6 +244,12 @@ impl FontTheme {
             .unwrap_or_default()
     }
 
+    fn get_font(&self, style: FontStyles) -> Font {
+        self.font_map.get(&style)
+            .map(|t| t.clone())
+            .unwrap_or_default()
+    }
+
 
     /// Get font_id for a custom named typography design
     pub fn font_id_named(&self, name: &str) -> FontId {
@@ -275,6 +281,15 @@ impl FontTheme {
 }
 #[derive(Debug, Clone)]
 pub struct ArcFontTheme(Arc<FontTheme>);
+
+impl ArcFontTheme {
+    pub fn get_font(&self, style: FontStyles) -> Font {
+        self.0.get_font(style)
+    }
+    pub fn get_font_id(&self, style: FontStyles) -> FontId {
+        self.0.get_font_id(style)
+    }
+}
 
 impl PartialEq for ArcFontTheme {
     fn eq(&self, other: &Self) -> bool {
