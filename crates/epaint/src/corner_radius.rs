@@ -97,6 +97,27 @@ impl CornerRadius {
     pub fn average(&self) -> f32 {
         (self.nw as f32 + self.ne as f32 + self.sw as f32 + self.se as f32) / 4.0
     }
+
+    pub fn top_zero(mut self) -> Self {
+        self.nw = 0;
+        self.ne = 0;
+        self
+    }
+    pub fn top_bottom(mut self) -> Self {
+        self.sw = 0;
+        self.se = 0;
+        self
+    }
+    pub fn left_zero(mut self) -> Self {
+        self.nw = 0;
+        self.sw = 0;
+        self
+    }
+    pub fn right_zero(mut self) -> Self {
+        self.se = 0;
+        self.ne = 0;
+        self
+    }
 }
 
 impl std::ops::Add for CornerRadius {
