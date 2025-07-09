@@ -103,7 +103,7 @@ impl CornerRadius {
         self.ne = 0;
         self
     }
-    pub fn top_bottom(mut self) -> Self {
+    pub fn bottom_zero(mut self) -> Self {
         self.sw = 0;
         self.se = 0;
         self
