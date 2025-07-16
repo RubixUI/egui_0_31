@@ -24,7 +24,7 @@ rustdoc-args = ["--generate-link-to-definition"]
 
 
 [features]
-default = ["default_fonts", "roboto_font"]
+default = ["default_fonts", "roboto_font", "google_icons"]
 ## Exposes detailed accessibility implementation required by platform
 ## accessibility APIs. Also requires support in the egui integration.
 accesskit = ["dep:accesskit"]
@@ -51,7 +51,8 @@ deadlock_detection = ["epaint/deadlock_detection"]
 ## If set, egui will use `include_bytes!` to bundle some fonts.
 ## If you plan on specifying your own fonts you may disable this feature.
 default_fonts = ["epaint/default_fonts"]
-roboto_font = ["egui_theme/roboto_font"]
+roboto_font = ["egui_font/roboto_font"]
+google_icons = ["roboto_font","egui_font/google_icons"]
 ## Turn on the `log` feature, that makes egui log some errors using the [`log`](https://docs.rs/log) crate.
 log = ["dep:log", "epaint/log"]
 
@@ -81,6 +82,7 @@ _override_unity = ["epaint/_override_unity"]
 [dependencies]
 emath = { workspace = true, default-features = false }
 egui_theme = { workspace = true }
+egui_font = { workspace = true }
 epaint = { workspace = true, default-features = false }
 
 ahash.workspace = true

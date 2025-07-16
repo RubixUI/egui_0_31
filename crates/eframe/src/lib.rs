@@ -7,7 +7,7 @@
 //! To learn how to set up `eframe` for web and native, go to <https://github.com/emilk/eframe_template/> and follow the instructions there!
 //!
 //! In short, you implement [`App`] (especially [`App::update`]) and then
-//! call [`crate::run_native`] from your `main.rs`, and/or use `eframe::WebRunner` from your `lib.rs`.
+//! call [`crate::run_native`] from your `lib`, and/or use `eframe::WebRunner` from your `lib.rs`.
 //!
 //! ## Compiling for web
 //! You need to install the `wasm32` target with `rustup target add wasm32-unknown-unknown`.

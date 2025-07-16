@@ -30,8 +30,8 @@ use crate::{
     TextStyle, TextureHandle, TextureOptions, Ui, ViewportBuilder, ViewportCommand, ViewportId,
     ViewportIdMap, ViewportIdPair, ViewportIdSet, ViewportOutput, Widget, WidgetRect, WidgetText,
 };
-use egui_theme::{ArcFontTheme, ColorTheme, FontTheme, SizeVariant, Theme as EguiTheme, ThemeGap};
-
+use egui_theme::{ColorTheme, SizeVariant, Theme as EguiTheme, ThemeGap};
+use egui_font::{ArcFontTheme, FontTheme};
 #[cfg(feature = "accesskit")]
 use crate::IdMap;
 

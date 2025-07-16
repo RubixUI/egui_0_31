@@ -3,7 +3,8 @@
 
 use emath::GuiRounding as _;
 use epaint::mutex::RwLock;
-use egui_theme::{ArcFontTheme, ColorTheme, SizeVariant, Theme, ThemeGap};
+use egui_theme::{ColorTheme, SizeVariant, Theme, ThemeGap};
+use egui_font::{ArcFontTheme};
 use std::{any::Any, hash::Hash, sync::Arc};
 use epaint::{CornerRadius, Margin};
 use crate::close_tag::ClosableTag;

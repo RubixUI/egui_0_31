@@ -9,8 +9,8 @@ use crate::{
     area, vec2, EventFilter, Id, IdMap, LayerId, Order, Pos2, Rangef, RawInput, Rect, Style, Vec2,
     ViewportId, ViewportIdMap, ViewportIdSet,
 };
-use egui_theme::{ArcFontTheme, ArcTheme, Theme as EguiTheme, ThemeBuilder};
-
+use egui_theme::{ ArcTheme, Theme as EguiTheme, ThemeBuilder};
+use egui_font::{ArcFontTheme};
 mod theme;
 pub use theme::{Theme, ThemePreference};
 

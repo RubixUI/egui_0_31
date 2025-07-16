@@ -857,6 +857,7 @@ name = "color_theme"
 version = "0.31.0"
 dependencies = [
  "eframe",
+ "egui",
 ]
 
 [[package]]
@@ -1279,6 +1280,7 @@ dependencies = [
  "backtrace",
  "bitflags 2.8.0",
  "document-features",
+ "egui_font",
  "egui_theme",
  "emath",
  "epaint",
@@ -1386,6 +1388,13 @@ dependencies = [
  "resvg",
  "serde",
  "syntect",
+]
+
+[[package]]
+name = "egui_font"
+version = "0.31.0"
+dependencies = [
+ "epaint",
 ]
 
 [[package]]

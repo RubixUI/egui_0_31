@@ -1,0 +1,12 @@
+[package]
+name = "egui_font"
+version.workspace = true
+edition.workspace = true
+
+[features]
+default = ["roboto_font","google_icons"]
+roboto_font = []
+google_icons = []
+
+[dependencies]
+epaint = { workspace = true, default-features = false }

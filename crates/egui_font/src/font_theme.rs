@@ -146,6 +146,121 @@ pub struct FontTheme {
     pub font_map: BTreeMap<FontStyles, Font>,
 }
 impl FontTheme {
+    #[cfg(feature = "google_icons")]
+    pub fn roboto_fonts() -> FontDefinitions {
+        let mut font_data: BTreeMap<String, Arc<FontData>> = BTreeMap::new();
+        let mut families = BTreeMap::new();
+        let mut font_defs = FontDefinitions {
+            font_data,
+            families
+        };
+        // Add fonts (example - you may need to adjust paths or use embedded fonts)
+        // Regular font
+        font_defs.font_data.insert(
+            "regular".to_string(),
+            Arc::new(FontData::from_static(include_bytes!("./data/fonts/Roboto-Regular.ttf"))),
+        );
+
+        // SemiBold font
+        font_defs.font_data.insert(
+            "semibold".to_string(),
+            Arc::new(FontData::from_static(include_bytes!("./data/fonts/Roboto-SemiBold.ttf"))),
+        );
+
+        font_defs.font_data.insert(
+            "regular_italic".to_string(),
+            Arc::new(FontData::from_static(include_bytes!("./data/fonts/Roboto-Italic.ttf"))),
+        );
+
+        // SemiBold font
+        font_defs.font_data.insert(
+            "semibold_italic".to_string(),
+            Arc::new(FontData::from_static(include_bytes!("./data/fonts/Roboto-SemiBoldItalic.ttf"))),
+        );
+
+        font_defs.font_data.insert(
+            "mono".to_string(),
+            Arc::new(FontData::from_static(include_bytes!("./data/fonts/RobotoMono-Regular.ttf"))),
+        );
+
+        // SemiBold font
+        font_defs.font_data.insert(
+            "mono_italic".to_string(),
+            Arc::new(FontData::from_static(include_bytes!("./data/fonts/RobotoMono-Italic.ttf"))),
+        );
+
+        font_defs.font_data.insert(
+            "mono_bold".to_string(),
+            Arc::new(FontData::from_static(include_bytes!("./data/fonts/RobotoMono-SemiBold.ttf"))),
+        );
+
+        // SemiBold font
+        font_defs.font_data.insert(
+            "mono_bold_italic".to_string(),
+            Arc::new(FontData::from_static(include_bytes!("./data/fonts/RobotoMono-SemiBoldItalic.ttf"))),
+        );
+
+        font_defs.font_data.insert(
+            "google_icons".to_string(),
+            Arc::new(FontData::from_static(include_bytes!("./data/fonts/MaterialSymbolsRounded_Filled-Regular.ttf"))),
+        );
+
+
+        font_defs.families.insert(
+            FontFamily::Name("regular".into()),
+            vec!["regular".to_string(),"google_icons".to_string()],
+        );
+
+        font_defs.families.insert(
+            FontFamily::Name("semibold".into()),
+            vec!["semibold".to_string(),"google_icons".to_string()],
+        );
+
+        font_defs.families.insert(
+            FontFamily::Name("regular_italic".into()),
+            vec!["regular_italic".to_string(),"google_icons".to_string()],
+        );
+
+        font_defs.families.insert(
+            FontFamily::Name("semibold_italic".into()),
+            vec!["semibold_italic".to_string(),"google_icons".to_string()],
+        );
+
+        font_defs.families.insert(
+            FontFamily::Name("mono".into()),
+            vec!["mono".to_string(),"google_icons".to_string()],
+        );
+
+        font_defs.families.insert(
+            FontFamily::Name("mono_italic".into()),
+            vec!["mono_italic".to_string(),"google_icons".to_string()],
+        );
+
+        font_defs.families.insert(
+            FontFamily::Name("mono_bold".into()),
+            vec!["mono_bold".to_string(),"google_icons".to_string()],
+        );
+
+        font_defs.families.insert(
+            FontFamily::Name("mono_bold_italic".into()),
+            vec!["mono_bold_italic".to_string(),"google_icons".to_string()],
+        );
+        font_defs.families.insert(
+            FontFamily::Monospace,
+            vec![
+                "mono".to_string(),"google_icons".to_string()
+            ],
+        );
+        font_defs.families.insert(
+            FontFamily::Proportional,
+            vec![
+                "regular".to_string(),"google_icons".to_string()
+            ],
+        );
+        font_defs
+    }
+
+    #[cfg(not(feature = "google_icons"))]
     pub fn roboto_fonts() -> FontDefinitions {
         let mut font_defs = FontDefinitions::default();
         // Add fonts (example - you may need to adjust paths or use embedded fonts)
@@ -236,7 +351,6 @@ impl FontTheme {
         );
         font_defs
     }
-
     /// Helper function to get font_id for a typography design
     fn get_font_id(&self, style: FontStyles) -> FontId {
         self.font_map.get(&style)

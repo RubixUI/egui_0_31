@@ -103,12 +103,12 @@ mod console {
 ///
 /// Example input:
 /// * `/Users/emilk/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.24.1/src/runtime/runtime.rs`
-/// * `crates/rerun/src/main.rs`
+/// * `crates/rerun/src/lib`
 /// * `/rustc/d5a82bbd26e1ad8b7401f6a718a9c57c96905483/library/core/src/ops/function.rs`
 ///
 /// Example output:
 /// * `tokio-1.24.1/src/runtime/runtime.rs`
-/// * `rerun/src/main.rs`
+/// * `rerun/src/lib`
 /// * `core/src/ops/function.rs`
 #[allow(dead_code)] // only used on web and in tests
 fn shorten_file_path(file_path: &str) -> &str {
@@ -127,7 +127,7 @@ fn shorten_file_path(file_path: &str) -> &str {
 fn test_shorten_file_path() {
     for (before, after) in [
         ("/Users/emilk/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.24.1/src/runtime/runtime.rs", "tokio-1.24.1/src/runtime/runtime.rs"),
-        ("crates/rerun/src/main.rs", "rerun/src/main.rs"),
+        ("crates/rerun/src/lib", "rerun/src/lib"),
         ("/rustc/d5a82bbd26e1ad8b7401f6a718a9c57c96905483/library/core/src/ops/function.rs", "core/src/ops/function.rs"),
         ("/weird/path/file.rs", "/weird/path/file.rs"),
         ]

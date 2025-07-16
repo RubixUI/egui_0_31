@@ -471,9 +471,16 @@ pub use egui_theme::{
     CornerRadiusMode,
     DynamicColor,
     Color32OpacityExt,
+};
+
+#[cfg(feature = "roboto_font")]
+pub use egui_font::{
     Font,FontSize,
     FontStyles,FontVariable,
 };
+
+#[cfg(feature = "google_icons")]
+pub use egui_font::icons;
 
 pub use epaint::{
     mutex,

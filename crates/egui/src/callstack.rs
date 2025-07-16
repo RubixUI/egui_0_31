@@ -170,7 +170,7 @@ fn test_clean_symbol_name() {
 ///
 /// Example input:
 /// * `/Users/emilk/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.24.1/src/runtime/runtime.rs`
-/// * `crates/rerun/src/main.rs`
+/// * `crates/rerun/src/lib`
 /// * `/rustc/d5a82bbd26e1ad8b7401f6a718a9c57c96905483/library/core/src/ops/function.rs`
 fn shorten_source_file_path(path: &std::path::Path) -> String {
     // Look for `src` and strip everything up to it.
@@ -205,7 +205,7 @@ fn shorten_source_file_path(path: &std::path::Path) -> String {
 fn test_shorten_path() {
     for (before, after) in [
         ("/Users/emilk/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.24.1/src/runtime/runtime.rs", "tokio-1.24.1/src/runtime/runtime.rs"),
-        ("crates/rerun/src/main.rs", "rerun/src/main.rs"),
+        ("crates/rerun/src/lib", "rerun/src/lib"),
         ("/rustc/d5a82bbd26e1ad8b7401f6a718a9c57c96905483/library/core/src/ops/function.rs", "core/src/ops/function.rs"),
         ("/weird/path/file.rs", "/weird/path/file.rs"),
         ]

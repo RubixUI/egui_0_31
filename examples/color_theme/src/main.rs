@@ -2,7 +2,7 @@
 #![allow(rustdoc::missing_crate_level_docs)]
 
 
-use eframe::egui::{self, BrightnessMode, CentralPanel, Color32, ColorVariantMode, CornerRadiusMode, Frame, Margin, SpaceMode, ThemeBuilder, Ui, WidgetText};
+use egui::{icons, BrightnessMode, CentralPanel, Color32, ColorVariantMode, ComboBox, Context, CornerRadiusMode, Frame, Margin, SpaceMode, TextEdit, ThemeBuilder, Ui, WidgetText};
 
 fn main() -> eframe::Result<()> {
     eframe::run_native(
@@ -27,7 +27,7 @@ impl Default for MyApp {
     }
 }
 impl eframe::App for MyApp {
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+    fn update(&mut self, ctx: &Context, _frame: &mut eframe::Frame) {
         CentralPanel::default().show(ctx, |ui| {
             self.show_builder(ui);
             self.show_colors(ui);
@@ -37,15 +37,15 @@ impl eframe::App for MyApp {
 }
 
 impl MyApp {
-    fn show_builder(&mut self,ui: &mut egui::Ui) {
+    fn show_builder(&mut self,ui: &mut Ui) {
         let mut builder = &mut self.theme_builder;
         ui.horizontal(|ui|{
             ui.label("Source Color:");
-            egui::TextEdit::singleline(&mut self.source_color);
+            TextEdit::singleline(&mut self.source_color);
         });
         ui.horizontal(|ui|{
             ui.label("Color Variant:");
-            egui::ComboBox::from_label("Color Variant")
+            ComboBox::from_label("Color Variant")
                 .selected_text(builder.get_color_variant_mode().to_string())
                 .show_ui(ui, |ui| {
                     if ui.selectable_value(builder.get_color_variant_mode_mut(), ColorVariantMode::TonalSpot, "TonalSpot").clicked() {
@@ -115,11 +115,11 @@ impl MyApp {
         }
     }
 
-    fn show_colors(&mut self,ui: &mut egui::Ui) {
+    fn show_colors(&mut self,ui: &mut Ui) {
         let color = ui.ctx().color_theme(|color|color.clone());
         ui.horizontal(|ui| {
-            show_color(ui,"Primary",color.primary());
-            show_color(ui,"On Primary",color.on_primary());
+            show_color(ui,format!("{} Primary",icons::ICON_HOME),color.primary());
+            show_color(ui,format!("{} On Primary",icons::ICON_COLORS),color.on_primary());
             show_color(ui,"Primary",color.primary_container());
             show_color(ui,"Primary",color.on_primary_container());
         });
@@ -208,7 +208,7 @@ impl MyApp {
         });
     }
 
-    fn show_theme(&mut self,ui: &mut egui::Ui) {
+    fn show_theme(&mut self,ui: &mut Ui) {
         let corner_radius = ui.ctx().corner_radius_theme(|theme|theme.clone());
         ui.label("Corner Radius:");
         ui.label(format!("Huge: {}", corner_radius.huge.ne));
