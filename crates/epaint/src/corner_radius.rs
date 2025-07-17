@@ -54,6 +54,13 @@ impl CornerRadius {
         se: 0,
     };
 
+    pub const CIRCULAR: Self = Self {
+        nw: 255,
+        ne: 255,
+        sw: 255,
+        se: 255,
+    };
+
     /// Same rounding on all four corners.
     #[inline]
     pub const fn same(radius: u8) -> Self {
