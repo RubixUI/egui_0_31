@@ -975,23 +975,23 @@ fn build_padding(
         SpaceMode::Loose => {
             SizeVariant {
                 mini: Margin::symmetric(8,6),
-                extra_small: Margin::symmetric(12,10),
-                small: Margin::symmetric(20,16),
-                medium: Margin::symmetric(16,16),
-                large: Margin::symmetric(20,20),
-                extra_large: Margin::symmetric(24,24),
-                huge: Margin::symmetric(30,30),
+                extra_small: Margin::symmetric(16,10),
+                small: Margin::symmetric(24,16),
+                medium: Margin::symmetric(32,20),
+                large: Margin::symmetric(40,24),
+                extra_large: Margin::symmetric(48,32),
+                huge: Margin::symmetric(64,48),
             }
         }
         SpaceMode::Compact => {
             SizeVariant {
                 mini: Margin::symmetric(6,2),
-                extra_small: Margin::symmetric(8,6),
-                small: Margin::symmetric(12,10),
-                medium: Margin::symmetric(12,12),
-                large: Margin::symmetric(16,16),
-                extra_large: Margin::symmetric(20,20),
-                huge: Margin::symmetric(24,24),
+                extra_small: Margin::symmetric(8,4),
+                small: Margin::symmetric(12,8),
+                medium: Margin::symmetric(16,12),
+                large: Margin::symmetric(20,16),
+                extra_large: Margin::symmetric(24,20),
+                huge: Margin::symmetric(32,24),
             }
         }
     }
