@@ -771,3 +771,13 @@ impl From<Arc<Galley>> for WidgetText {
         Self::Galley(galley)
     }
 }
+
+impl From<WidgetText> for String {
+    fn from(value: WidgetText) -> Self {
+        match value {
+            WidgetText::RichText(r) => r.text().to_string(),
+            WidgetText::LayoutJob(l) => l.text,
+            WidgetText::Galley(g) => g.text().to_string(),
+        }
+    }
+}
