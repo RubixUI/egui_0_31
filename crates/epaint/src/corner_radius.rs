@@ -125,6 +125,38 @@ impl CornerRadius {
         self.ne = 0;
         self
     }
+
+    pub fn right_circular(mut self) -> Self {
+        self.se = 255;
+        self.ne = 255;
+        self
+    }
+
+    pub fn left_circular(mut self) -> Self {
+        self.sw = 255;
+        self.nw = 255;
+        self
+    }
+
+    pub fn top_circular(mut self) -> Self {
+        self.nw = 255;
+        self.ne = 255;
+        self
+    }
+
+    pub fn bottom_circular(mut self) -> Self {
+        self.sw = 255;
+        self.se = 255;
+        self
+    }
+
+    pub fn circular(mut self) -> Self {
+        self.se = 255;
+        self.ne = 255;
+        self.sw = 255;
+        self.nw = 255;
+        self
+    }
 }
 
 impl std::ops::Add for CornerRadius {
