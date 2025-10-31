@@ -1783,7 +1783,7 @@ impl Ui {
         // 4️⃣ 使用 Area 包裹 widget，确保绘制和交互正确
         Area::new(id)
             .constrain_to(parent_rect)
-            .anchor(anchor, offset)
+            .anchor(anchor, offset_signed)
             .show(ctx, |ui| ui.add(widget))
             .inner
     }
