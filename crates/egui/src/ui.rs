@@ -1,7 +1,7 @@
 #![warn(missing_docs)] // Let's keep `Ui` well-documented.
 #![allow(clippy::use_self)]
 
-use emath::GuiRounding as _;
+use emath::{Align2, GuiRounding as _};
 use epaint::mutex::RwLock;
 use egui_theme::{ColorTheme, SizeVariant, Theme, ThemeGap};
 use egui_font::{ArcFontTheme};
@@ -13,7 +13,7 @@ use crate::Stroke;
 use crate::{containers::{CollapsingHeader, CollapsingResponse, Frame}, ecolor::Hsva, emath, epaint, epaint::text::Fonts, grid, layout::{Direction, Layout}, menu, menu::MenuState, pass_state, placer::Placer, pos2, style, util::IdTypeMap, vec2, widgets, widgets::{
     color_picker, Button, Checkbox, DragValue, Hyperlink, Image, ImageSource, Label, Link,
     RadioButton, SelectableLabel, Separator, Spinner, TextEdit, Widget,
-}, Align, Color32, Context, CursorIcon, DragAndDrop, Id, InnerResponse, InputState, LayerId, Memory, Order, Painter, PlatformOutput, Pos2, Rangef, Rect, Response, Rgba, RichText, Sense, Style, TextStyle, TextWrapMode, UiBuilder, UiKind, UiStack, UiStackInfo, Vec2, WidgetRect, WidgetText};
+}, Align, Area, Color32, Context, CursorIcon, DragAndDrop, Id, InnerResponse, InputState, LayerId, Memory, Order, Painter, PlatformOutput, Pos2, Rangef, Rect, Response, Rgba, RichText, Sense, Style, TextStyle, TextWrapMode, UiBuilder, UiKind, UiStack, UiStackInfo, Vec2, WidgetRect, WidgetText};
 use crate::grid::GridLayout;
 // ----------------------------------------------------------------------------
 
@@ -1712,6 +1712,149 @@ impl Ui {
     #[inline]
     pub fn add(&mut self, widget: impl Widget) -> Response {
         widget.ui(self)
+    }
+
+    /// Internal helper function to implement absolute positioning of a widget.
+    ///
+    /// This function is used by both [`add_absolute`] (screen-relative)
+    /// and [`add_absolute_local`] (current UI-relative).
+    ///
+    /// # Parameters
+    /// - `ctx`: the [`Context`] used for rendering and layout.
+    /// - `parent_rect`: the reference rectangle for positioning.
+    ///      - For screen-relative positioning, use `ctx.screen_rect()`.
+    ///      - For local positioning, use `ui.min_rect()` or `ui.max_rect()`.
+    /// - `anchor`: determines which point of `parent_rect` is used as reference
+    ///      (e.g., top-left, bottom-right, center).
+    /// - `offset`: positive offset from the anchor; direction is automatically
+    ///      adjusted according to the anchor.
+    /// - `widget`: the [`Widget`] to be added.
+    ///
+    /// # Behavior
+    /// 1. Compute the anchor position within `parent_rect` using `anchor.pos_in_rect`.
+    /// 2. Adjust the `offset` sign according to the anchor:
+    ///      - left/top → offset positive (right/down)
+    ///      - right/bottom → offset negative (left/up)
+    /// 3. Compute the final position: `pos = anchor_pos + offset_signed`.
+    /// 4. Wrap the widget in an [`Area`] with `.fixed_pos(pos)` to ensure
+    ///      correct rendering and interactive behavior.
+    ///
+    /// # Returns
+    /// [`Response`] for the widget, which can be used to handle interactions
+    /// or attach tooltips.
+    ///
+    /// # Example
+    /// ```
+    /// # egui::__run_test_ui(|ui| {
+    /// let ctx = ui.ctx();
+    /// let parent_rect = ui.min_rect();
+    /// add_absolute_impl(
+    ///     ctx,
+    ///     parent_rect,
+    ///     egui::Align2::CENTER_CENTER,
+    ///     egui::Vec2::new(0.0, 0.0),
+    ///     egui::Button::new("Center"),
+    /// );
+    /// # });
+    /// ```
+    #[inline]
+    fn add_absolute_impl<R: Widget>(
+        ctx: &Context,
+        parent_rect: Rect,
+        anchor: Align2,
+        offset: Vec2,
+        widget: R,
+        id: Id,
+    ) -> Response {
+        // 2️⃣ 根据 anchor 自动调整 offset 正负
+        let offset_signed = Vec2::new(
+            match anchor[0] {
+                Align::Min => offset.x,
+                Align::Center => 0.0,
+                Align::Max => -offset.x,
+            },
+            match anchor[1] {
+                Align::Min => offset.y,
+                Align::Center => 0.0,
+                Align::Max => -offset.y,
+            },
+        );
+
+        // 4️⃣ 使用 Area 包裹 widget，确保绘制和交互正确
+        Area::new(id)
+            .constrain_to(parent_rect)
+            .anchor(anchor, offset)
+            .show(ctx, |ui| ui.add(widget))
+            .inner
+    }
+
+    /// Add a [`Widget`] to this [`Ui`] at an absolute position relative to the **screen**.
+    ///
+    /// The `anchor` determines which point of the parent rectangle is used as reference:
+    /// - `Align2::LEFT_TOP` → top-left corner
+    /// - `Align2::RIGHT_BOTTOM` → bottom-right corner
+    /// - `Align2::CENTER_CENTER` → center
+    ///
+    /// The `offset` is always interpreted as positive, and its sign is automatically
+    /// adjusted according to the anchor:
+    /// - For left/top anchors, offset moves right/down
+    /// - For right/bottom anchors, offset moves left/up
+    ///
+    /// The returned [`Response`] can be used to check for interactions,
+    /// as well as adding tooltips using [`Response::on_hover_text`].
+    ///
+    /// # Example
+    /// ```
+    /// # egui::__run_test_ui(|ui| {
+    /// ui.add_absolute(
+    ///     egui::Align2::RIGHT_TOP,
+    ///     egui::Vec2::new(20.0, 20.0),
+    ///     egui::Button::new("Screen top-right"),
+    /// );
+    /// # });
+    /// ```
+    #[inline]
+    pub fn add_absolute<R: Widget>(
+        &mut self,
+        anchor: Align2,
+        offset: Vec2,
+        widget: R,
+        id: impl Into<Id>
+    ) -> Response {
+        let ctx = self.ctx();
+        let parent_rect = ctx.screen_rect(); // 相对于屏幕
+        Self::add_absolute_impl(ctx, parent_rect, anchor, offset, widget,id.into())
+    }
+
+    /// Add a [`Widget`] to this [`Ui`] at an absolute position relative to the **current UI container**.
+    ///
+    /// Works similarly to [`add_absolute`], but the reference rectangle is the current [`Ui`]'s bounds,
+    /// instead of the entire screen. This is equivalent to "absolute_local" positioning in modern UI frameworks.
+    ///
+    /// The returned [`Response`] can be used to check for interactions,
+    /// as well as adding tooltips using [`Response::on_hover_text`].
+    ///
+    /// # Example
+    /// ```
+    /// # egui::__run_test_ui(|ui| {
+    /// ui.add_absolute_local(
+    ///     egui::Align2::LEFT_BOTTOM,
+    ///     egui::Vec2::new(30.0, 10.0),
+    ///     egui::Button::new("Local bottom-left"),
+    /// );
+    /// # });
+    /// ```
+    #[inline]
+    pub fn add_absolute_local<R: Widget>(
+        &mut self,
+        anchor: Align2,
+        offset: Vec2,
+        widget: R,
+        id: impl Into<Id>
+    ) -> Response {
+        let ctx = self.ctx();
+        let parent_rect = self.min_rect(); // 相对于当前 UI container
+        Self::add_absolute_impl(ctx, parent_rect, anchor, offset, widget,id.into())
     }
 
     /// Add a [`Widget`] to this [`Ui`] with a given size.
