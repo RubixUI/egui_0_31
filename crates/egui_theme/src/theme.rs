@@ -664,6 +664,36 @@ pub struct SizeVariant<T> {
     pub huge: T
 }
 
+impl SizeVariant<Margin> {
+    pub fn mini_same(&self) -> Margin {
+        Margin::same(self.mini.left)
+    }
+
+    pub fn extra_small_same(&self) -> Margin {
+        Margin::same(self.extra_small.left)
+    }
+
+    pub fn small_same(&self) -> Margin {
+        Margin::same(self.small.left)
+    }
+
+    pub fn medium_same(&self) -> Margin {
+        Margin::same(self.medium.left)
+    }
+
+    pub fn large_same(&self) -> Margin {
+        Margin::same(self.large.left)
+    }
+
+    pub fn extra_large_same(&self) -> Margin {
+        Margin::same(self.extra_large.left)
+    }
+
+    pub fn huge_same(&self) -> Margin {
+        Margin::same(self.huge.left)
+    }
+}
+
 #[derive(Debug, Clone,PartialEq)]
 pub struct ThemeGap {
     pub horizontal: SizeVariant<f32>,
