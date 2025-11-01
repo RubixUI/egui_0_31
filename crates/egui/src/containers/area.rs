@@ -121,8 +121,6 @@ pub struct Area {
     new_pos: Option<Pos2>,
     fade_in: bool,
     layout: Layout,
-    fixed_width: Option<f32>,
-    fixed_height: Option<f32>,
 }
 
 impl WidgetWithState for Area {
@@ -149,8 +147,6 @@ impl Area {
             anchor: None,
             fade_in: true,
             layout: Layout::default(),
-            fixed_width: None,
-            fixed_height: None,
         }
     }
 
@@ -233,18 +229,6 @@ impl Area {
     #[inline]
     pub fn default_pos(mut self, default_pos: impl Into<Pos2>) -> Self {
         self.default_pos = Some(default_pos.into());
-        self
-    }
-
-    #[inline]
-    pub fn fixed_width(mut self, fixed_width: f32) -> Self {
-        self.fixed_width = Some(fixed_width);
-        self
-    }
-
-    #[inline]
-    pub fn fixed_height(mut self, fixed_height: f32) -> Self {
-        self.fixed_height = Some(fixed_height);
         self
     }
 
@@ -384,8 +368,6 @@ pub(crate) struct Prepared {
 
     fade_in: bool,
     layout: Layout,
-    fixed_width: Option<f32>,
-    fixed_height: Option<f32>,
 }
 
 impl Area {
@@ -419,8 +401,6 @@ impl Area {
             constrain_rect,
             fade_in,
             layout,
-            fixed_width,
-            fixed_height,
         } = self;
 
         let constrain_rect = constrain_rect.unwrap_or_else(|| ctx.screen_rect());
@@ -453,17 +433,10 @@ impl Area {
             let mut size = default_size;
 
             let default_area_size = ctx.style().spacing.default_area_size;
-            // 如果设置了 fixed_width，优先使用它
-            if let Some(fixed_w) = fixed_width {
-                size.x = fixed_w;
-            } else if size.x.is_nan() {
+            if size.x.is_nan() {
                 size.x = default_area_size.x;
             }
-
-            // 如果设置了 fixed_height，优先使用它
-            if let Some(fixed_h) = fixed_height {
-                size.y = fixed_h;
-            } else if size.y.is_nan() {
+            if size.y.is_nan() {
                 size.y = default_area_size.y;
             }
 
@@ -555,8 +528,6 @@ impl Area {
             sizing_pass,
             fade_in,
             layout,
-            fixed_width,
-            fixed_height,
         }
     }
 }
@@ -630,25 +601,10 @@ impl Prepared {
             mut state,
             move_response: mut response,
             sizing_pass,
-            fixed_width,
-            fixed_height,  // 添加这一行
             ..
         } = self;
 
-        // 计算新的大小
-        let mut new_size = content_ui.min_size();
-
-        // 如果设置了固定宽度，保持宽度不变
-        if let Some(fixed_w) = fixed_width {
-            new_size.x = fixed_w;
-        }
-
-        // 如果设置了固定高度，保持高度不变
-        if let Some(fixed_h) = fixed_height {
-            new_size.y = fixed_h;
-        }
-
-        state.size = Some(new_size);
+        state.size = Some(content_ui.min_size());
 
         // Make sure we report back the correct size.
         // Very important after the initial sizing pass, when the initial estimate of the size is way off.
