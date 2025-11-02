@@ -477,11 +477,15 @@ impl Area {
                 size.y = default_area_size.y;
             }
 
+            if constrain {
+                size = size.at_most(constrain_rect.size());
+            }
             size
         });
-
+        //check constrain every frame and update state size
         if constrain {
             size = size.at_most(constrain_rect.size());
+            state.size = Some(size);
         }
 
         // TODO(emilk): if last frame was sizing pass, it should be considered invisible for smoother fade-in
