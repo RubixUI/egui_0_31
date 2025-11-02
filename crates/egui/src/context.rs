@@ -458,7 +458,7 @@ impl ContextImpl {
 
                 let input = &viewport.input;
                 // This is a bit hacky, but is required to avoid jitter:
-                let mut rect = input.screen_rect;
+                let mut rect = input.viewport_rect();
                 rect.min = (ratio * rect.min.to_vec2()).to_pos2();
                 rect.max = (ratio * rect.max.to_vec2()).to_pos2();
                 new_raw_input.screen_rect = Some(rect);
@@ -485,7 +485,7 @@ impl ContextImpl {
             &self.memory.options,
         );
 
-        let screen_rect = viewport.input.screen_rect;
+        let screen_rect = viewport.input.viewport_rect();
 
         viewport.this_pass.begin_pass(screen_rect);
 
@@ -2598,6 +2598,29 @@ impl Context {
     }
 
     // ---------------------------------------------------------------------
+    /// Returns the position and size of the egui area that is safe for content rendering.
+    ///
+    /// Returns [`Self::viewport_rect`] minus areas that might be partially covered by, for example,
+    /// the OS status bar or display notches.
+    ///
+    /// If you want to render behind e.g. the dynamic island on iOS, use [`Self::viewport_rect`].
+    pub fn content_rect(&self) -> Rect {
+        self.input(|i| i.content_rect()).round_ui()
+    }
+
+    /// Returns the position and size of the full area available to egui
+    ///
+    /// This includes reas that might be partially covered by, for example, the OS status bar or
+    /// display notches. See [`Self::content_rect`] to get a rect that is safe for content.
+    ///
+    /// This rectangle includes e.g. the dynamic island on iOS.
+    /// If you want to only render _below_ the that (not behind), then you should use
+    /// [`Self::content_rect`] instead.
+    ///
+    /// See also [`RawInput::safe_area_insets`].
+    pub fn viewport_rect(&self) -> Rect {
+        self.input(|i| i.viewport_rect()).round_ui()
+    }
 
     /// Position and size of the egui area.
     pub fn screen_rect(&self) -> Rect {

@@ -111,7 +111,7 @@ impl Ui {
     pub fn new(ctx: Context, id: Id, ui_builder: UiBuilder) -> Self {
         let UiBuilder {
             id_salt,
-            ui_stack_info,
+            global_scope, ui_stack_info,
             layer_id,
             max_rect,
             layout,
@@ -120,6 +120,7 @@ impl Ui {
             sizing_pass,
             style,
             sense,
+            accessibility_parent,
         } = ui_builder;
 
         let layer_id = layer_id.unwrap_or(LayerId::background());
@@ -238,6 +239,7 @@ impl Ui {
     pub fn new_child(&mut self, ui_builder: UiBuilder) -> Self {
         let UiBuilder {
             id_salt,
+            global_scope,
             ui_stack_info,
             layer_id,
             max_rect,
@@ -247,6 +249,7 @@ impl Ui {
             sizing_pass,
             style,
             sense,
+            accessibility_parent,
         } = ui_builder;
 
         let mut painter = self.painter.clone();

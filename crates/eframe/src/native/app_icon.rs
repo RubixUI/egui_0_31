@@ -220,7 +220,7 @@ fn set_title_and_icon_mac(title: &str, icon_data: Option<&IconData>) -> AppIconS
     };
 
     // TODO(madsmtm): Move this into `objc2-app-kit`
-    extern "C" {
+    unsafe extern "C" {
         static NSApp: Option<&'static NSApplication>;
     }
 
