@@ -463,7 +463,7 @@ impl Area {
         });
         state.interactable = interactable;
 
-        let size = *state.size.get_or_insert_with(|| {
+        let mut size = *state.size.get_or_insert_with(|| {
             sizing_pass = true;
 
             // during the sizing pass we will use this as the max size
@@ -477,12 +477,12 @@ impl Area {
                 size.y = default_area_size.y;
             }
 
-            if constrain {
-                size = size.at_most(constrain_rect.size());
-            }
-
             size
         });
+
+        if constrain {
+            size = size.at_most(constrain_rect.size());
+        }
 
         // TODO(emilk): if last frame was sizing pass, it should be considered invisible for smoother fade-in
         let visible_last_frame = ctx.memory(|mem| mem.areas().visible_last_frame(&layer_id));
