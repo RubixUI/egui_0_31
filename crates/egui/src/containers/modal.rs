@@ -2,7 +2,7 @@ use crate::{
     Area, Color32, Context, Frame, Id, InnerResponse, Order, Response, Sense, Ui, UiBuilder, UiKind,
 };
 use emath::{Align2, Vec2};
-
+use core::any::{Any};
 /// A modal dialog.
 /// Similar to a [`crate::Window`] but centered and with a backdrop that
 /// blocks input to the rest of the UI.
@@ -13,6 +13,8 @@ pub struct Modal {
     pub area: Area,
     pub backdrop_color: Color32,
     pub frame: Option<Frame>,
+    pub click_outside_to_close: bool,
+    pub escape_key_to_close: bool,
 }
 
 impl Modal {
@@ -22,7 +24,19 @@ impl Modal {
             area: Self::default_area(id),
             backdrop_color: Color32::from_black_alpha(100),
             frame: None,
+            click_outside_to_close: true,
+            escape_key_to_close: true,
         }
+    }
+
+    pub fn with_click_outside_to_close(mut self,click_outside_to_close:bool) -> Self {
+        self.click_outside_to_close = click_outside_to_close;
+        self
+    }
+
+    pub fn with_escape_key_to_close(mut self,escape_key_to_close:bool) -> Self {
+        self.escape_key_to_close = escape_key_to_close;
+        self
     }
 
     /// Returns an area customized for a modal.
@@ -71,7 +85,7 @@ impl Modal {
         let Self {
             area,
             backdrop_color,
-            frame,
+            frame, click_outside_to_close, escape_key_to_close,
         } = self;
 
         let (is_top_modal, any_popup_open) = ctx.memory_mut(|mem| {
@@ -111,6 +125,8 @@ impl Modal {
             inner,
             is_top_modal,
             any_popup_open,
+            click_outside_to_close,
+            escape_key_to_close,
         }
     }
 }
@@ -136,9 +152,12 @@ pub struct ModalResponse<T> {
     /// We need to check this before the modal contents are shown, so we can know if any popup
     /// was open when checking if the escape key was clicked.
     pub any_popup_open: bool,
+    /// if is closed by outside, like a close button clicked
+    pub click_outside_to_close: bool,
+    pub escape_key_to_close: bool,
 }
 
-impl<T> ModalResponse<T> {
+impl<T: 'static> ModalResponse<T> {
     /// Should the modal be closed?
     /// Returns true if:
     ///  - the backdrop was clicked
@@ -152,8 +171,16 @@ impl<T> ModalResponse<T> {
 
         let ui_close_called = self.response.should_close();
 
-        self.backdrop_response.clicked()
+        let any_ref = &self.inner as &dyn Any;
+        /// for response type inner. we can close modal by an inner clock!
+        let inner_close  = if let Some(r) = any_ref.downcast_ref::<Response>() {
+            r.should_close()
+        } else {
+            false
+        };
+        (self.backdrop_response.clicked() && self.click_outside_to_close)
             || ui_close_called
-            || (self.is_top_modal && !self.any_popup_open && escape_clicked())
+            || inner_close
+            || (self.is_top_modal && !self.any_popup_open && escape_clicked() && self.escape_key_to_close)
     }
 }
