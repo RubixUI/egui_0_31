@@ -696,8 +696,8 @@ impl SizeVariant<Margin> {
 
 #[derive(Debug, Clone,PartialEq)]
 pub struct ThemeGap {
-    pub horizontal: SizeVariant<i8>,
-    pub vertical: SizeVariant<i8>,
+    pub horizontal: SizeVariant<f32>,
+    pub vertical: SizeVariant<f32>,
 }
 
 #[derive(Debug, Clone,PartialEq)]
@@ -978,22 +978,22 @@ impl ThemeBuilder {
 fn build_gap() -> ThemeGap {
     ThemeGap {
         horizontal: SizeVariant {
-            mini: 4,
-            extra_small: 6,
-            small: 8,
-            medium: 10,
-            large: 12,
-            extra_large: 16,
-            huge: 20,
+            mini: 4.,
+            extra_small: 6.,
+            small: 8.,
+            medium: 10.,
+            large: 12.,
+            extra_large: 16.,
+            huge: 20.,
         },
         vertical: SizeVariant {
-            mini: 2,
-            extra_small: 4,
-            small: 6,
-            medium: 8,
-            large: 10,
-            extra_large: 12,
-            huge: 16,
+            mini: 2.,
+            extra_small: 4.,
+            small: 6.,
+            medium: 8.,
+            large: 10.,
+            extra_large: 12.,
+            huge: 16.,
         },
     }
 }
