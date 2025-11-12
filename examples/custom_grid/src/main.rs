@@ -223,14 +223,15 @@ impl eframe::App for MyApp {
             area.show(ctx, |ui| {
                 frame.show(ui, |ui| {
                     egui::Grid::fluid(id.with("sdas"))
-                        .fixed(50)
-                        .percent(150)
+                        .fixed(32)
                         .remainder()
+                        .fixed(24)
+                        .spacing(Vec2::new(8.,0.))
                         .show(ui, |ui| {
                             egui::Grid::row(ui, |ui| {
                                 ui.label("xxxxxxxxx");
                                 ui.label("dsadsafds");
-                                ui.label("fdsfdssfd");
+                                ui.label("ssssssfd");
                             })
                         });
                 });

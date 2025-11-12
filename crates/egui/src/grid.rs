@@ -1,3 +1,4 @@
+use std::cmp::min;
 use std::ops::{Add, Deref, Mul};
 use std::usize;
 use emath::GuiRounding as _;
@@ -86,17 +87,8 @@ impl GridLayout {
     pub fn new(ui: &Ui, id: Id, prev_state: Option<State>,grid_size: GridLayoutSize,spacing: Vec2,row:usize) -> Self {
         let initial_available = ui.placer().max_rect().intersect(ui.cursor());
 
-        // 检查 available_rect 是否变化
-        let available_rect_changed = prev_state.as_ref()
-            .and_then(|s| s.available_rect)
-            .map(|prev_rect| {
-                // 比较宽度（主要关注宽度变化）
-                (prev_rect.width() - initial_available.width()).abs() > f32::EPSILON
-            })
-            .unwrap_or(false);
-
         // 统一判断：第一帧或尺寸变化时，都视为第一帧处理
-        let is_first_frame = prev_state.is_none() || available_rect_changed;
+        let is_first_frame = prev_state.is_none();
 
         // 如果是第一帧，重置 prev_state
         let prev_state = if is_first_frame {
@@ -840,6 +832,6 @@ fn get_fluid_column_widths(ui: & Ui,grid_columns: Vec<GridSizeFluid>,space_width
             res[n - 1] += rounding_error;
         }
     }
-
+    println!("{} {:?}",min_width, res);
     res
 }
