@@ -4,7 +4,7 @@
 // This example shows a top-level menu with a nested submenu,
 // both created via ui.menu_custom_widget.
 
-use eframe::egui::{self, vec2, CentralPanel, GridLayout, GridState, Id, InnerResponse, Ui, UiBuilder, Vec2};
+use eframe::egui::{self, vec2, Align2, Area, CentralPanel, Color32, CornerRadius, GridLayout, GridState, Id, InnerResponse, Margin, Sense, Ui, UiBuilder, Vec2};
 use eframe::egui::{Grid};
 use eframe::epaint::Stroke;
 
@@ -112,7 +112,7 @@ impl eframe::App for MyApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         CentralPanel::default().show(ctx, |ui| {
             // Create a top-level custom widget menu button:
-            let words = [
+            /*let words = [
                 "random", "words", "in", "a", "random", "order", "that", "just", "keeps", "going",
                 "with", "some", "more",
             ];
@@ -202,7 +202,39 @@ impl eframe::App for MyApp {
                                     }
                                 });
                         }
+                });*/
+
+
+            // Grid in Area,
+            let id = Id::new("test_grid");
+            let mut area = Area::new(id)
+                .anchor(Align2::LEFT_TOP,Vec2::new(0.,ui.cursor().min.y))
+                .sense(Sense::empty());
+
+            let frame = egui::Frame {
+                inner_margin: Margin::same(24),
+                fill: Color32::GREEN,
+                stroke: Stroke::NONE,
+                corner_radius:CornerRadius::same(12),
+                outer_margin: Default::default(),
+                shadow: Default::default(),
+            };
+
+            area.show(ctx, |ui| {
+                frame.show(ui, |ui| {
+                    egui::Grid::fluid(id.with("sdas"))
+                        .fixed(50)
+                        .percent(150)
+                        .remainder()
+                        .show(ui, |ui| {
+                            egui::Grid::row(ui, |ui| {
+                                ui.label("xxxxxxxxx");
+                                ui.label("dsadsafds");
+                                ui.label("fdsfdssfd");
+                            })
+                        });
                 });
+            });
         });
     }
 }

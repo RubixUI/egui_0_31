@@ -11,6 +11,7 @@ use crate::Stroke;
 pub struct State {
     col_widths: Vec<f32>,
     row_heights: Vec<f32>,
+    available_rect: Option<Rect>,  // 改为存储 Rect
 }
 
 impl State {
@@ -83,12 +84,27 @@ pub struct GridLayout {
 
 impl GridLayout {
     pub fn new(ui: &Ui, id: Id, prev_state: Option<State>,grid_size: GridLayoutSize,spacing: Vec2,row:usize) -> Self {
-        let is_first_frame = prev_state.is_none();
-        let prev_state = prev_state.unwrap_or_default();
-
-        // TODO(emilk): respect current layout
-
         let initial_available = ui.placer().max_rect().intersect(ui.cursor());
+
+        // 检查 available_rect 是否变化
+        let available_rect_changed = prev_state.as_ref()
+            .and_then(|s| s.available_rect)
+            .map(|prev_rect| {
+                // 比较宽度（主要关注宽度变化）
+                (prev_rect.width() - initial_available.width()).abs() > f32::EPSILON
+            })
+            .unwrap_or(false);
+
+        // 统一判断：第一帧或尺寸变化时，都视为第一帧处理
+        let is_first_frame = prev_state.is_none() || available_rect_changed;
+
+        // 如果是第一帧，重置 prev_state
+        let prev_state = if is_first_frame {
+            State::default()
+        } else {
+            prev_state.unwrap_or_default()
+        };
+
         debug_assert!(
             initial_available.min.x.is_finite(),
             "Grid not yet available for right-to-left layouts"
@@ -96,18 +112,20 @@ impl GridLayout {
 
         ui.ctx().check_for_id_clash(id, initial_available, "Grid");
 
+        // 在创建时初始化 curr_state 的 available_rect
+        let mut curr_state = State::default();
+        curr_state.available_rect = Some(initial_available);
+
         Self {
             ctx: ui.ctx().clone(),
             style: ui.style().clone(),
             id,
             is_first_frame,
             prev_state,
-            curr_state: State::default(),
+            curr_state,  // 已经包含了 available_rect
             initial_available,
-
             spacing,
             size: grid_size,
-
             col: 0,
             row,
         }
@@ -447,14 +465,14 @@ impl GridSize {
             }
         }
     }
-    pub fn to_grid_layout_size(self,ui:& Ui) -> GridLayoutSize {
+    pub fn to_grid_layout_size(self,ui:& Ui,space_width: f32) -> GridLayoutSize {
         let min_size = self.get_min_size(ui);
         match self {
             GridSize::Collapsing(min_x, min_y, max_width) => {
                 GridLayoutSize::Collapsing(min_size, max_width.unwrap_or(f32::INFINITY as usize) as f32)
             }
             GridSize::Fluid(_,v) => {
-                GridLayoutSize::Fluid(min_size,get_fluid_column_widths(ui,v))
+                GridLayoutSize::Fluid(min_size,get_fluid_column_widths(ui,v,space_width))
             }
 
         }
@@ -729,7 +747,7 @@ impl Grid {
 
         ui.allocate_new_ui(ui_builder, |ui| {
             ui.horizontal(|ui| {
-                let grid = GridLayout::new(ui, id, prev_state,size.to_grid_layout_size(ui),spacing,start_row);
+                let grid = GridLayout::new(ui, id, prev_state,size.to_grid_layout_size(ui,spacing.x),spacing,start_row);
 
                 ui.set_grid(grid);
                 let r = add_contents(ui);
@@ -748,31 +766,80 @@ fn striped_row_color(row: usize, style: &Style) -> Option<Color32> {
     None
 }
 
-fn get_fluid_column_widths(ui: & Ui,grid_columns: Vec<GridSizeFluid>) -> Vec<(f32)> {
-    let full_size = ui.available_size().x;
-    let mut remainer_width = full_size;
+fn get_fluid_column_widths(ui: & Ui,grid_columns: Vec<GridSizeFluid>,space_width:f32) -> Vec<(f32)> {
+    let n = grid_columns.len();
+    if n == 0 {
+        return Vec::new();
+    }
+
     let min_width = ui.spacing().interact_size.x;
-    let mut res = vec![];
-    for column in grid_columns {
-        let mut c_width = match column {
+    let total_available = ui.available_size().x;
+    let total_spacing = ((n - 1) as f32) * space_width;
+    let total_min_width = (n as f32) * min_width;
+
+    // 1. 计算弹性可支配空间
+    let mut flexible_space = total_available - total_spacing - total_min_width;
+
+    // 2. 特殊分支：可支配空间 <= 0
+    if flexible_space <= 0.0 {
+        return vec![min_width; n];
+    }
+
+    // 3. 初始化结果数组
+    let mut res = vec![0.0; n];
+    let mut remainder_indices = Vec::new();
+
+    // 4. 第一遍遍历：计算所有非 Remainder 列的宽度
+    for (i, column) in grid_columns.into_iter().enumerate() {
+        match column {
             GridSizeFluid::Fixed(column_width) => {
-                column_width as f32
+                let fixed_width = column_width as f32;
+                // 该列可用的弹性空间 = min(fixed_width - min_width, flexible_space)
+                let column_flexible = (fixed_width - min_width).min(flexible_space).max(0.0);
+                let c_width = min_width + column_flexible;
+                res[i] = c_width;
+                flexible_space -= column_flexible;  // 直接减少可支配空间
             },
             GridSizeFluid::Percent(percent) => {
-                (percent * 0.01 * full_size).floor()
+                let percent_width = (percent * 0.01 * total_available).floor();
+                let column_flexible = (percent_width - min_width).min(flexible_space).max(0.0);
+                let c_width = min_width + column_flexible;
+                res[i] = c_width;
+                flexible_space -= column_flexible;  // 直接减少可支配空间
             },
             GridSizeFluid::Remainder => {
-                remainer_width
+                remainder_indices.push(i);
             },
-        };
-        c_width = c_width.at_least(min_width).at_most(remainer_width);
-        remainer_width -= c_width;
-        if remainer_width < min_width {
-            res.push(c_width + remainer_width);
-            break
-        } else {
-            res.push(c_width);
         }
     }
+
+    // 5. 处理 Remainder 列：平均分配剩余的可支配空间
+    if !remainder_indices.is_empty() {
+        let remainder_count = remainder_indices.len();
+        let remainder_per_column = flexible_space / (remainder_count as f32);
+
+        // 每个 Remainder 列 = min_width + 平均分配的可支配空间
+        for &idx in &remainder_indices {
+            res[idx] = min_width + remainder_per_column;
+        }
+
+        // 6. 计算舍入误差并修正
+        let total_allocated: f32 = res.iter().sum();
+        let rounding_error = total_available - total_spacing - total_allocated;
+
+        if rounding_error.abs() > f32::EPSILON {
+            let last_idx = remainder_indices[remainder_indices.len() - 1];
+            res[last_idx] += rounding_error;
+        }
+    } else {
+        // 如果没有 Remainder 列，也需要处理舍入误差
+        let total_allocated: f32 = res.iter().sum();
+        let rounding_error = total_available - total_spacing - total_allocated;
+
+        if rounding_error.abs() > f32::EPSILON {
+            res[n - 1] += rounding_error;
+        }
+    }
+
     res
 }
